@@ -161,12 +161,6 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--brand); }
 .button-input { display: grid; grid-template-columns: 1fr auto; }
 .button-input input { border-radius: 6px 0 0 6px; }
 .button-input button { border: 1px solid var(--brand); background: var(--brand); color: #fff; padding: 0 13px; border-radius: 0 6px 6px 0; }
-.rules-builder { background: #f8fafc; border: 1px solid #e6eaf0; border-radius: 8px; padding: 16px; }
-.rule-row { display: grid; grid-template-columns: 60px 180px 140px minmax(180px, 1fr) 50px; gap: 10px; align-items: center; }
-.rule-row > span { font-size: 11px; font-weight: 700; color: #687487; }
-.rule-row > button { border: 0; color: #d25555; background: transparent; }
-.rule-relation { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: #e9eff8; color: #597092; font-size: 10px; margin: 8px 0 8px 18px; }
-.text-add { margin-top: 12px; border: 0; color: var(--brand); background: transparent; font-weight: 600; }
 .rewards-section .section-head .secondary { margin-left: auto; }
 .reward-list { display: flex; flex-direction: column; gap: 14px; }
 .reward-card { border: 1px solid #dfe4eb; border-radius: 8px; overflow: hidden; }
@@ -243,6 +237,5 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--brand); }
   .content { padding: 20px; }
   .filter-grid, .data-filter .filter-grid { grid-template-columns: repeat(2, 1fr); }
   .sticky-actions { left: 70px; }
-  .rule-row { grid-template-columns: 1fr 1fr; }
   .driver-summary { grid-template-columns: repeat(2,1fr); }
 }

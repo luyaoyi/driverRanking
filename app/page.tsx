@@ -164,7 +164,7 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
   const [statsStart, setStatsStart] = useState("2026-09-05T00:00");
   const [statsEnd, setStatsEnd] = useState("2026-09-25T23:59");
   const [audiences, setAudiences] = useState({ xianzhi: true, volume: false, tag: true, ab: true });
-  const [orderLimit, setOrderLimit] = useState(true);
+  const [orderLimits, setOrderLimits] = useState({ business: true, amount: true, mileage: true });
   const [groupsLoaded, setGroupsLoaded] = useState(false);
   const [rules, setRules] = useState<RewardRule[]>([
     { id: 1, from: 1, to: 1, normal: true, normalName: "华为运动手表", code: "ACT202609WATCH", cash: true, amount: 500 },
@@ -254,8 +254,21 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
         </section>
 
         <section className="form-section">
-          <div className="section-head"><span>03</span><div><h3>订单限制条件</h3><p>每笔完单累计里程前均校验订单条件</p></div><Switch checked={orderLimit} disabled={readOnly} onChange={setOrderLimit} /></div>
-          {orderLimit && <div className="rules-builder"><div className="rule-row"><span>条件 1</span><select disabled={readOnly}><option>订单业务类型</option></select><select disabled={readOnly}><option>等于</option></select><div className="multi-select"><span>快车 ×</span><span>特惠快车 ×</span></div><button type="button" disabled={readOnly}>删除</button></div><div className="rule-relation">且</div><div className="rule-row"><span>条件 2</span><select disabled={readOnly}><option>订单金额</option></select><select disabled={readOnly}><option>大于等于</option></select><input type="number" defaultValue={20} disabled={readOnly} /><button type="button" disabled={readOnly}>删除</button></div><button type="button" className="text-add" disabled={readOnly}>＋ 添加限制条件</button></div>}
+          <div className="section-head"><span>03</span><div><h3>订单限制条件</h3><p>各限制可独立启用，多项限制同时启用时需全部满足</p></div></div>
+          <div className="condition-list">
+            <div className="condition-item">
+              <div className="condition-title"><Switch checked={orderLimits.business} disabled={readOnly} onChange={(v) => setOrderLimits({ ...orderLimits, business: v })} /><div><strong>订单业务类型限制</strong><span>仅指定业务类型的完单可计入活动</span></div></div>
+              {orderLimits.business && <div className="condition-fields one"><Field label="订单业务类型" required><div className="multi-select"><span>快车 ×</span><span>特惠快车 ×</span></div></Field></div>}
+            </div>
+            <div className="condition-item">
+              <div className="condition-title"><Switch checked={orderLimits.amount} disabled={readOnly} onChange={(v) => setOrderLimits({ ...orderLimits, amount: v })} /><div><strong>订单金额限制</strong><span>配置订单最低金额，大于等于该金额时满足限制</span></div></div>
+              {orderLimits.amount && <div className="condition-fields one"><Field label="订单最低金额" required hint="订单金额大于等于该金额时满足限制"><div className="unit-input"><input type="number" min="0" step="0.01" defaultValue={20} disabled={readOnly} /><span>元</span></div></Field></div>}
+            </div>
+            <div className="condition-item">
+              <div className="condition-title"><Switch checked={orderLimits.mileage} disabled={readOnly} onChange={(v) => setOrderLimits({ ...orderLimits, mileage: v })} /><div><strong>订单公里数限制</strong><span>配置订单最小公里数，大于等于该公里数时满足限制</span></div></div>
+              {orderLimits.mileage && <div className="condition-fields one"><Field label="订单最小公里数" required hint="订单公里数大于等于该公里数时满足限制"><div className="unit-input"><input type="number" min="0" step="0.1" defaultValue={10} disabled={readOnly} /><span>公里</span></div></Field></div>}
+            </div>
+          </div>
         </section>
 
         <section className="form-section rewards-section">
@@ -263,7 +276,7 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
           <div className="reward-list">
             {rules.map((rule, index) => <div className="reward-card" key={rule.id}>
               <div className="reward-card-head"><strong>奖励规则 {index + 1}</strong>{rules.length > 1 && !readOnly && <button type="button" onClick={() => setRules(rules.filter((item) => item.id !== rule.id))}>删除</button>}</div>
-              <div className="rank-row"><Field label="获奖名次" required><div className="rank-range"><input type="number" min="1" value={rule.from} onChange={(e) => updateRule(rule.id, "from", Number(e.target.value))} disabled={readOnly} /><em>至</em><input type="number" min="1" value={rule.to} onChange={(e) => updateRule(rule.id, "to", Number(e.target.value))} disabled={readOnly} /><i>名</i></div></Field></div>
+              <div className="rank-row"><Field label="获奖名次" required hint="名次区间左闭右闭，包含起始名次和结束名次"><div className="rank-range"><input type="number" min="1" value={rule.from} onChange={(e) => updateRule(rule.id, "from", Number(e.target.value))} disabled={readOnly} /><em>至</em><input type="number" min="1" value={rule.to} onChange={(e) => updateRule(rule.id, "to", Number(e.target.value))} disabled={readOnly} /><i>名</i></div></Field></div>
               <div className="reward-types">
                 <div className={`reward-type ${rule.normal ? "selected" : ""}`}><div className="reward-type-title"><label><input type="checkbox" checked={rule.normal} onChange={(e) => updateRule(rule.id, "normal", e.target.checked)} disabled={readOnly} />普通奖品</label><span>通过营销活动Code发放</span></div>{rule.normal && <div className="reward-fields"><Field label="奖品名称" required><input value={rule.normalName} onChange={(e) => updateRule(rule.id, "normalName", e.target.value)} disabled={readOnly} /></Field><Field label="奖品发放活动Code" required><input value={rule.code} onChange={(e) => updateRule(rule.id, "code", e.target.value)} disabled={readOnly} /></Field></div>}</div>
                 <div className={`reward-type ${rule.cash ? "selected" : ""}`}><div className="reward-type-title"><label><input type="checkbox" checked={rule.cash} onChange={(e) => updateRule(rule.id, "cash", e.target.checked)} disabled={readOnly} />现金奖品</label><span>按配置的固定金额打款</span></div>{rule.cash && <div className="reward-fields one"><Field label="现金奖励金额" required><div className="unit-input"><input type="number" min="1" step="1" value={rule.amount} onChange={(e) => updateRule(rule.id, "amount", Number(e.target.value))} disabled={readOnly} /><span>元</span></div></Field></div>}</div>
