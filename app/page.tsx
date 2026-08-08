@@ -262,24 +262,19 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
 
 function ConfigList({ configs, onOpen }: { configs: ActivityConfig[]; onOpen: (mode: "new" | "edit" | "view", item?: ActivityConfig) => void }) {
   const [name, setName] = useState("");
-  const [city, setCity] = useState("");
   const [status, setStatus] = useState("");
-  const [stage, setStage] = useState("");
-  const [query, setQuery] = useState({ name: "", city: "", status: "", stage: "" });
-  const rows = useMemo(() => configs.filter((item) => (!query.name || item.name.includes(query.name)) && (!query.city || item.city === query.city) && (!query.status || item.status === query.status) && (!query.stage || item.stage === query.stage)), [configs, query]);
-  const reset = () => { setName(""); setCity(""); setStatus(""); setStage(""); };
+  const [query, setQuery] = useState({ name: "", status: "" });
+  const rows = useMemo(() => configs.filter((item) => (!query.name || item.name.includes(query.name)) && (!query.status || item.status === query.status)), [configs, query]);
+  const reset = () => { setName(""); setStatus(""); };
 
   return <>
     <div className="content-heading"><div><span className="eyebrow">活动运营</span><h1>活动配置管理</h1><p>按城市维护真车主里程排行榜活动及奖励规则</p></div><button className="primary" onClick={() => onOpen("new")}>＋ 新增配置</button></div>
     <section className="panel filter-panel">
       <div className="filter-grid">
         <Field label="活动名称"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="请输入活动名称" /></Field>
-        <Field label="城市限制"><select value={city} onChange={(e) => setCity(e.target.value)}><option value="">全部城市</option>{["杭州市", "上海市", "成都市", "深圳市"].map((i) => <option key={i}>{i}</option>)}</select></Field>
         <Field label="活动状态"><select value={status} onChange={(e) => setStatus(e.target.value)}><option value="">全部状态</option><option>有效</option><option>无效</option></select></Field>
-        <Field label="活动阶段"><select value={stage} onChange={(e) => setStage(e.target.value)}><option value="">全部阶段</option><option>未开始</option><option>统计中</option><option>统计已结束</option><option>投放已结束</option></select></Field>
-        <Field label="投放时间"><div className="date-range compact"><input type="date" /><em>—</em><input type="date" /></div></Field>
       </div>
-      <div className="filter-actions"><button className="secondary" onClick={reset}>重置</button><button className="primary" onClick={() => setQuery({ name, city, status, stage })}>查询</button></div>
+      <div className="filter-actions"><button className="secondary" onClick={reset}>重置</button><button className="primary" onClick={() => setQuery({ name, status })}>查询</button></div>
     </section>
     <section className="panel table-panel">
       <div className="panel-title"><div><h3>配置列表</h3><span>共 {rows.length} 条配置</span></div><button className="icon-button" title="刷新">↻</button></div>

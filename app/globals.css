@@ -80,7 +80,7 @@ main { grid-column: 2; min-width: 0; }
 
 .panel { background: #fff; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 2px 5px rgba(19,32,54,.025); }
 .filter-panel { padding: 20px; margin-bottom: 18px; }
-.filter-grid { display: grid; grid-template-columns: repeat(5, minmax(150px, 1fr)); gap: 18px; }
+.filter-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 18px; max-width: 640px; }
 .field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
 .field-label { font-size: 12px; color: #5d6878; font-weight: 600; }
 .field-label b { color: var(--red); margin-right: 4px; }
@@ -196,7 +196,7 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--brand); }
 .tabs button.active::after { content: ""; position: absolute; height: 2px; left: 0; right: 0; bottom: -1px; background: var(--brand); }
 .live-pill { padding: 7px 11px; background: var(--green-soft); color: var(--green); border-radius: 16px; font-size: 11px; font-weight: 600; }
 .live-pill i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 5px; box-shadow: 0 0 0 4px rgba(22,156,103,.1); }
-.data-filter .filter-grid { grid-template-columns: repeat(4, minmax(160px, 1fr)); }
+.data-filter .filter-grid { grid-template-columns: repeat(4, minmax(160px, 1fr)); max-width: none; }
 .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
 .metric-grid > div { background: #fff; border: 1px solid var(--line); border-radius: 9px; padding: 17px; position: relative; overflow: hidden; }
 .metric-grid > div::before { content: ""; width: 4px; position: absolute; left: 0; top: 14px; bottom: 14px; border-radius: 3px; background: #5a8eed; }
@@ -235,7 +235,7 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--brand); }
 .toast span { color: #6ee0aa; font-weight: 800; }
 
 @media (max-width: 1180px) {
-  .filter-grid { grid-template-columns: repeat(3, 1fr); }
+  .filter-grid { grid-template-columns: repeat(2, 1fr); }
   .form-grid.two, .reward-types { grid-template-columns: 1fr; }
   .metric-grid { grid-template-columns: repeat(2, 1fr); }
 }
