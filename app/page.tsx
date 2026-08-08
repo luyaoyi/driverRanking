@@ -29,6 +29,12 @@ type RewardRule = {
   amount: number;
 };
 
+type IncentiveDriver = {
+  id: number;
+  phoneSuffix: string;
+  mileage: number;
+};
+
 type RewardDetail = {
   id: number;
   type: "普通奖品" | "现金奖品";
@@ -168,6 +174,12 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
   const [useEnd, setUseEnd] = useState("2026-09-20T23:59");
   const [audiences, setAudiences] = useState({ xianzhi: true, volume: false, tag: true, ab: true });
   const [orderMileageLimit, setOrderMileageLimit] = useState(true);
+  const [incentiveStart, setIncentiveStart] = useState("2026-09-05T00:00");
+  const [incentiveEnd, setIncentiveEnd] = useState("2026-09-25T23:59");
+  const [incentiveDrivers, setIncentiveDrivers] = useState<IncentiveDriver[]>([
+    { id: 1, phoneSuffix: "6812", mileage: 3286.5 },
+    { id: 2, phoneSuffix: "0397", mileage: 3102.8 },
+  ]);
   const [groupsLoaded, setGroupsLoaded] = useState(false);
   const [rules, setRules] = useState<RewardRule[]>([
     { id: 1, from: 1, to: 1, normal: true, normalName: "华为运动手表", code: "ACT202609WATCH", cash: true, cashCode: "CASH_DYNAMIC_202609", amount: 500 },
@@ -178,10 +190,15 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
     setRules((items) => items.map((item) => item.id === id ? { ...item, [key]: value } : item));
   };
 
+  const updateIncentiveDriver = (id: number, key: "phoneSuffix" | "mileage", value: string | number) => {
+    setIncentiveDrivers((items) => items.map((item) => item.id === id ? { ...item, [key]: value } : item));
+  };
+
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!name.trim()) return;
     if (useStart < statsStart || useEnd > statsEnd || useStart >= useEnd) return;
+    if (incentiveStart >= incentiveEnd || incentiveDrivers.some((item) => !/^\d{4}$/.test(item.phoneSuffix) || item.mileage < 0)) return;
     if (!rules.length || rules.some((rule) => (!rule.normal && !rule.cash) || (rule.cash && !rule.cashCode.trim()))) return;
     onSave({
       id: current?.id ?? Date.now(),
@@ -272,7 +289,26 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
         </section>
 
         <section className="form-section rewards-section">
-          <div className="section-head"><span>04</span><div><h3><b className="required-mark">*</b>名次奖励配置</h3><p>必填；名次区间不可重叠，进入配置名次即获奖</p></div>{!readOnly && <button className="secondary" type="button" onClick={() => setRules([...rules, { id: Date.now(), from: rules.length + 2, to: rules.length + 2, normal: false, normalName: "", code: "", cash: true, cashCode: "", amount: 100 }])}>＋ 新增名次奖励</button>}</div>
+          <div className="section-head"><span>04</span><div><h3>激励司机配置</h3><p>配置指定有效期内展示的司机累计公里数</p></div>{!readOnly && <button className="secondary" type="button" onClick={() => setIncentiveDrivers([...incentiveDrivers, { id: Date.now(), phoneSuffix: "", mileage: 0 }])}>＋ 新增司机</button>}</div>
+          <div className="form-grid two incentive-period">
+            <Field label="激励司机配置有效期" required>
+              <div className="date-range"><input type="datetime-local" value={incentiveStart} onChange={(e) => setIncentiveStart(e.target.value)} disabled={readOnly} required /><em>至</em><input type="datetime-local" value={incentiveEnd} onChange={(e) => setIncentiveEnd(e.target.value)} disabled={readOnly} required /></div>
+            </Field>
+          </div>
+          <div className="driver-config-list">
+            <div className="driver-config-head"><span>序号</span><span>司机手机尾号</span><span>司机累计公里数</span><span>操作</span></div>
+            {incentiveDrivers.map((item, index) => <div className="driver-config-row" key={item.id}>
+              <strong>{String(index + 1).padStart(2, "0")}</strong>
+              <input value={item.phoneSuffix} maxLength={4} inputMode="numeric" placeholder="请输入4位数字" onChange={(e) => updateIncentiveDriver(item.id, "phoneSuffix", e.target.value.replace(/\D/g, "").slice(0, 4))} disabled={readOnly} required />
+              <div className="unit-input"><input type="number" min="0" step="0.1" value={item.mileage} onChange={(e) => updateIncentiveDriver(item.id, "mileage", Number(e.target.value))} disabled={readOnly} required /><span>公里</span></div>
+              {!readOnly ? <button type="button" onClick={() => setIncentiveDrivers(incentiveDrivers.filter((driver) => driver.id !== item.id))}>删除</button> : <span>—</span>}
+            </div>)}
+            {!incentiveDrivers.length && <div className="driver-config-empty">暂未配置激励司机，可点击“新增司机”添加</div>}
+          </div>
+        </section>
+
+        <section className="form-section rewards-section">
+          <div className="section-head"><span>05</span><div><h3><b className="required-mark">*</b>名次奖励配置</h3><p>必填；名次区间不可重叠，进入配置名次即获奖</p></div>{!readOnly && <button className="secondary" type="button" onClick={() => setRules([...rules, { id: Date.now(), from: rules.length + 2, to: rules.length + 2, normal: false, normalName: "", code: "", cash: true, cashCode: "", amount: 100 }])}>＋ 新增名次奖励</button>}</div>
           <div className="reward-list">
             {rules.map((rule, index) => <div className="reward-card" key={rule.id}>
               <div className="reward-card-head"><strong>奖励规则 {index + 1}</strong>{rules.length > 1 && !readOnly && <button type="button" onClick={() => setRules(rules.filter((item) => item.id !== rule.id))}>删除</button>}</div>
@@ -283,6 +319,21 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
               </div>
             </div>)}
           </div>
+        </section>
+
+        <section className="form-section">
+          <div className="section-head"><span>06</span><div><h3>前端样式</h3><p>配置司机端活动页面展示内容</p></div></div>
+          <Field label="规则说明" hint="非必填，支持富文本编辑">
+            <div className={`rich-editor ${readOnly ? "readonly" : ""}`}>
+              <div className="rich-toolbar">
+                <button type="button" disabled={readOnly} onMouseDown={(e) => { e.preventDefault(); document.execCommand("bold"); }}><b>B</b></button>
+                <button type="button" disabled={readOnly} onMouseDown={(e) => { e.preventDefault(); document.execCommand("italic"); }}><i>I</i></button>
+                <button type="button" disabled={readOnly} onMouseDown={(e) => { e.preventDefault(); document.execCommand("insertUnorderedList"); }}>• 列表</button>
+                <button type="button" disabled={readOnly} onMouseDown={(e) => { e.preventDefault(); document.execCommand("insertOrderedList"); }}>1. 列表</button>
+              </div>
+              <div className="rich-content" contentEditable={!readOnly} suppressContentEditableWarning data-placeholder="请输入活动规则说明">活动期间完成符合条件的订单，即可累计真实完单里程并参与城市排行榜。</div>
+            </div>
+          </Field>
         </section>
 
         <div className="sticky-actions"><button className="secondary" type="button" onClick={onClose}>{readOnly ? "返回" : "取消"}</button>{!readOnly && <button className="primary" type="submit">保存配置</button>}</div>

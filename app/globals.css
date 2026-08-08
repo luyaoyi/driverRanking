@@ -179,6 +179,21 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--brand); }
 .reward-type-title span { color: #9aa3b0; font-size: 10px; }
 .reward-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed #dce3ec; }
 .reward-fields.one { grid-template-columns: 1fr; }
+.incentive-period { margin-bottom: 16px; }
+.driver-config-list { border: 1px solid #e2e7ee; border-radius: 8px; overflow: hidden; }
+.driver-config-head, .driver-config-row { display: grid; grid-template-columns: 70px minmax(180px, 1fr) minmax(220px, 1.2fr) 70px; gap: 12px; align-items: center; padding: 11px 14px; }
+.driver-config-head { background: #f6f8fb; color: #748095; font-size: 11px; font-weight: 700; }
+.driver-config-row { border-top: 1px solid #edf0f4; }
+.driver-config-row > strong { color: #8b96a7; font-size: 11px; }
+.driver-config-row > button { border: 0; background: transparent; color: #ef6464; }
+.driver-config-empty { padding: 24px; text-align: center; color: #9aa3b0; border-top: 1px solid #edf0f4; }
+.rich-editor { border: 1px solid #dfe4eb; border-radius: 7px; overflow: hidden; background: #fff; }
+.rich-toolbar { display: flex; gap: 4px; padding: 8px 10px; background: #f7f9fc; border-bottom: 1px solid #e6eaf0; }
+.rich-toolbar button { min-width: 32px; height: 28px; border: 1px solid #dfe4eb; border-radius: 5px; background: #fff; color: #4a566a; padding: 0 8px; }
+.rich-toolbar button:disabled { opacity: .5; }
+.rich-content { min-height: 120px; padding: 12px 14px; line-height: 1.7; outline: none; }
+.rich-content:empty::before { content: attr(data-placeholder); color: #a3acb9; }
+.rich-editor.readonly { background: #f8fafc; }
 .unit-input { position: relative; }
 .unit-input input { padding-right: 42px; }
 .unit-input span { position: absolute; right: 12px; top: 11px; color: #758194; }
