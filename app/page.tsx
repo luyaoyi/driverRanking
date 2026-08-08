@@ -163,6 +163,8 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
   const [deliveryEnd, setDeliveryEnd] = useState("2026-09-30T23:59");
   const [statsStart, setStatsStart] = useState("2026-09-05T00:00");
   const [statsEnd, setStatsEnd] = useState("2026-09-25T23:59");
+  const [useStart, setUseStart] = useState("2026-09-08T00:00");
+  const [useEnd, setUseEnd] = useState("2026-09-20T23:59");
   const [audiences, setAudiences] = useState({ xianzhi: true, volume: false, tag: true, ab: true });
   const [orderMileageLimit, setOrderMileageLimit] = useState(true);
   const [groupsLoaded, setGroupsLoaded] = useState(false);
@@ -178,6 +180,7 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!name.trim()) return;
+    if (useStart < statsStart || useEnd > statsEnd || useStart >= useEnd) return;
     onSave({
       id: current?.id ?? Date.now(),
       name,
@@ -227,6 +230,9 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
             </Field>
             <Field label="订单统计时间" required hint="统计时间必须完整落在活动投放时间内">
               <div className="date-range"><input type="datetime-local" value={statsStart} onChange={(e) => setStatsStart(e.target.value)} disabled={readOnly} /><em>至</em><input type="datetime-local" value={statsEnd} onChange={(e) => setStatsEnd(e.target.value)} disabled={readOnly} /></div>
+            </Field>
+            <Field label="用车时间" required hint="用车时间必须完整落在订单统计时间内；订单判断以最早用车时间为准">
+              <div className="date-range"><input type="datetime-local" min={statsStart} max={statsEnd} value={useStart} onChange={(e) => setUseStart(e.target.value)} disabled={readOnly} required /><em>至</em><input type="datetime-local" min={statsStart} max={statsEnd} value={useEnd} onChange={(e) => setUseEnd(e.target.value)} disabled={readOnly} required /></div>
             </Field>
           </div>
         </section>
