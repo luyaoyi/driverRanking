@@ -25,6 +25,7 @@ type RewardRule = {
   normalName: string;
   code: string;
   cash: boolean;
+  cashCode: string;
   amount: number;
 };
 
@@ -169,8 +170,8 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
   const [orderMileageLimit, setOrderMileageLimit] = useState(true);
   const [groupsLoaded, setGroupsLoaded] = useState(false);
   const [rules, setRules] = useState<RewardRule[]>([
-    { id: 1, from: 1, to: 1, normal: true, normalName: "华为运动手表", code: "ACT202609WATCH", cash: true, amount: 500 },
-    { id: 2, from: 2, to: 3, normal: false, normalName: "", code: "", cash: true, amount: 300 },
+    { id: 1, from: 1, to: 1, normal: true, normalName: "华为运动手表", code: "ACT202609WATCH", cash: true, cashCode: "CASH_DYNAMIC_202609", amount: 500 },
+    { id: 2, from: 2, to: 3, normal: false, normalName: "", code: "", cash: true, cashCode: "CASH_DYNAMIC_202609", amount: 300 },
   ]);
 
   const updateRule = (id: number, key: keyof RewardRule, value: string | number | boolean) => {
@@ -181,6 +182,7 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
     event.preventDefault();
     if (!name.trim()) return;
     if (useStart < statsStart || useEnd > statsEnd || useStart >= useEnd) return;
+    if (!rules.length || rules.some((rule) => (!rule.normal && !rule.cash) || (rule.cash && !rule.cashCode.trim()))) return;
     onSave({
       id: current?.id ?? Date.now(),
       name,
@@ -270,14 +272,14 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
         </section>
 
         <section className="form-section rewards-section">
-          <div className="section-head"><span>04</span><div><h3>名次奖励配置</h3><p>名次区间不可重叠，进入配置名次即获奖</p></div>{!readOnly && <button className="secondary" type="button" onClick={() => setRules([...rules, { id: Date.now(), from: rules.length + 2, to: rules.length + 2, normal: false, normalName: "", code: "", cash: true, amount: 100 }])}>＋ 新增名次奖励</button>}</div>
+          <div className="section-head"><span>04</span><div><h3><b className="required-mark">*</b>名次奖励配置</h3><p>必填；名次区间不可重叠，进入配置名次即获奖</p></div>{!readOnly && <button className="secondary" type="button" onClick={() => setRules([...rules, { id: Date.now(), from: rules.length + 2, to: rules.length + 2, normal: false, normalName: "", code: "", cash: true, cashCode: "", amount: 100 }])}>＋ 新增名次奖励</button>}</div>
           <div className="reward-list">
             {rules.map((rule, index) => <div className="reward-card" key={rule.id}>
               <div className="reward-card-head"><strong>奖励规则 {index + 1}</strong>{rules.length > 1 && !readOnly && <button type="button" onClick={() => setRules(rules.filter((item) => item.id !== rule.id))}>删除</button>}</div>
               <div className="rank-row"><Field label="获奖名次" required hint="名次区间左闭右闭，包含起始名次和结束名次"><div className="rank-range"><input type="number" min="1" value={rule.from} onChange={(e) => updateRule(rule.id, "from", Number(e.target.value))} disabled={readOnly} /><em>至</em><input type="number" min="1" value={rule.to} onChange={(e) => updateRule(rule.id, "to", Number(e.target.value))} disabled={readOnly} /><i>名</i></div></Field></div>
               <div className="reward-types">
                 <div className={`reward-type ${rule.normal ? "selected" : ""}`}><div className="reward-type-title"><label><input type="checkbox" checked={rule.normal} onChange={(e) => updateRule(rule.id, "normal", e.target.checked)} disabled={readOnly} />普通奖品</label><span>通过营销活动Code发放</span></div>{rule.normal && <div className="reward-fields"><Field label="奖品名称" required><input value={rule.normalName} onChange={(e) => updateRule(rule.id, "normalName", e.target.value)} disabled={readOnly} /></Field><Field label="奖品发放活动Code" required><input value={rule.code} onChange={(e) => updateRule(rule.id, "code", e.target.value)} disabled={readOnly} /></Field></div>}</div>
-                <div className={`reward-type ${rule.cash ? "selected" : ""}`}><div className="reward-type-title"><label><input type="checkbox" checked={rule.cash} onChange={(e) => updateRule(rule.id, "cash", e.target.checked)} disabled={readOnly} />现金奖品</label><span>按配置的固定金额打款</span></div>{rule.cash && <div className="reward-fields one"><Field label="现金奖励金额" required><div className="unit-input"><input type="number" min="1" step="1" value={rule.amount} onChange={(e) => updateRule(rule.id, "amount", Number(e.target.value))} disabled={readOnly} /><span>元</span></div></Field></div>}</div>
+                <div className={`reward-type ${rule.cash ? "selected" : ""}`}><div className="reward-type-title"><label><input type="checkbox" checked={rule.cash} onChange={(e) => updateRule(rule.id, "cash", e.target.checked)} disabled={readOnly} />现金奖品</label><span>按配置的固定金额打款</span></div>{rule.cash && <div className="reward-fields"><Field label="现金奖品Code" required hint="请使用动态金额上限奖品"><input value={rule.cashCode} onChange={(e) => updateRule(rule.id, "cashCode", e.target.value)} disabled={readOnly} required /></Field><Field label="现金奖励金额" required><div className="unit-input"><input type="number" min="1" step="1" value={rule.amount} onChange={(e) => updateRule(rule.id, "amount", Number(e.target.value))} disabled={readOnly} required /><span>元</span></div></Field></div>}</div>
               </div>
             </div>)}
           </div>

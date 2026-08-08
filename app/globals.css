@@ -134,6 +134,7 @@ td small, td > span.subline { display: block; color: #8f99a8; font-size: 10px; m
 .section-head > span { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; background: var(--brand-soft); color: var(--brand); font-size: 10px; font-weight: 800; }
 .section-head > div { flex: 1; }
 .section-head h3 { margin: 0; font-size: 16px; }
+.required-mark { color: #ef4444; margin-right: 4px; }
 .section-head p { margin: 4px 0 0; color: #8a94a2; font-size: 11px; }
 .form-grid.two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 30px; }
 .radio-row { min-height: 38px; display: flex; align-items: center; gap: 24px; }
