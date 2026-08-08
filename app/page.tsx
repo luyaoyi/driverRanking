@@ -291,15 +291,13 @@ function DataPage({ onDetail }: { onDetail: (mid: string) => void }) {
     <div className="tabs"><button className={tab === "drivers" ? "active" : ""} onClick={() => setTab("drivers")}>司机里程数据</button><button className={tab === "rewards" ? "active" : ""} onClick={() => setTab("rewards")}>奖品发放明细</button></div>
     <section className="panel filter-panel data-filter">
       <div className="filter-grid">
-        <Field label="活动名称" required><select><option>{tab === "drivers" ? "盛夏真车主里程挑战赛" : "申城真车主公里榜"}</option></select></Field>
-        <Field label="归属城市"><select><option>{tab === "drivers" ? "杭州市" : "上海市"}</option></select></Field>
+        <Field label="活动Code" required><input key={tab} defaultValue={tab === "drivers" ? "MILEAGE_RANK_HZ_202608" : "MILEAGE_RANK_SH_202607"} placeholder="请输入活动Code" /></Field>
         <Field label="mid"><input placeholder="请输入mid" /></Field>
         <Field label="手机号后四位"><input maxLength={4} placeholder="请输入4位数字" /></Field>
         {tab === "rewards" && <><Field label="奖励类型"><select><option>全部</option><option>普通奖品</option><option>现金奖品</option></select></Field><Field label="发放状态"><select><option>全部</option><option>发放成功</option><option>发放失败</option></select></Field></>}
       </div><div className="filter-actions"><button className="secondary">重置</button><button className="primary">查询</button></div>
     </section>
     {tab === "drivers" ? <>
-      <div className="metric-grid"><div><span>参与司机</span><strong>2,486</strong><small>人</small></div><div><span>累计公里数</span><strong>1,286,402.8</strong><small>公里</small></div><div><span>计入订单</span><strong>68,739</strong><small>单</small></div><div><span>最近更新时间</span><strong className="small-metric">11:26:20</strong><small>实时</small></div></div>
       <section className="panel table-panel"><div className="panel-title"><div><h3>司机里程排行榜</h3><span>当前展示：杭州市</span></div><span className="rank-note">里程越高排名越靠前</span></div><div className="table-wrap"><table><thead><tr><th>名次</th><th>mid / 手机号</th><th>归属城市</th><th>累计公里数</th><th>计入订单数</th><th>最近计入时间</th><th className="right">操作</th></tr></thead><tbody>{drivers.map((item) => <tr key={item.mid}><td><span className={`rank-badge r${item.rank}`}>{item.rank}</span></td><td><strong>{item.mid}</strong><span className="subline">{item.phone}</span></td><td>{item.city}</td><td><strong className="mileage">{item.mileage}</strong><span className="unit"> km</span></td><td>{item.orders} 单</td><td>{item.last}</td><td className="right actions"><button onClick={() => onDetail(item.mid)}>查看明细</button></td></tr>)}</tbody></table></div><div className="pagination"><span>共 2,486 条</span><select><option>20 条/页</option></select><button>‹</button><button className="active">1</button><button>2</button><button>3</button><button>›</button></div></section>
     </> : <section className="panel table-panel"><div className="panel-title"><div><h3>奖品发放记录</h3><span>普通奖品与现金奖品分别生成记录</span></div></div><div className="table-wrap"><table><thead><tr><th>最终名次</th><th>mid / 手机号</th><th>城市</th><th>奖励类型</th><th>奖励内容</th><th>活动Code</th><th>发放状态</th><th>发放时间</th></tr></thead><tbody>{rewards.map((item, index) => <tr key={`${item.mid}-${index}`}><td><span className={`rank-badge r${item.rank}`}>{item.rank}</span></td><td><strong>{item.mid}</strong><span className="subline">{item.phone}</span></td><td>{item.city}</td><td><span className={`reward-label ${item.type === "现金奖品" ? "cash" : "normal"}`}>{item.type}</span></td><td><strong>{item.content}</strong></td><td>{item.code}</td><td><StatusTag value={item.status} /></td><td>{item.time}</td></tr>)}</tbody></table></div><div className="pagination"><span>共 4 条</span><button className="active">1</button></div></section>}
   </>;
@@ -326,7 +324,7 @@ export default function Home() {
   return <div className="app-shell">
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark"><span>里</span></div><div><strong>出行营销</strong><small>活动运营中心</small></div></div>
-      <nav><span className="nav-section">活动管理</span><button className={nav === "config" ? "active" : ""} onClick={() => { setNav("config"); setEditor(null); }}><Icon>▦</Icon><span>配置管理</span></button><button className={nav === "data" ? "active" : ""} onClick={() => { setNav("data"); setEditor(null); }}><Icon>⌁</Icon><span>活动数据</span></button><span className="nav-section muted-section">系统能力</span><button disabled><Icon>◎</Icon><span>人群中心</span></button><button disabled><Icon>◇</Icon><span>奖品管理</span></button></nav>
+      <nav><span className="nav-section">活动管理</span><button className={nav === "config" ? "active" : ""} onClick={() => { setNav("config"); setEditor(null); }}><Icon>▦</Icon><span>配置管理</span></button><button className={nav === "data" ? "active" : ""} onClick={() => { setNav("data"); setEditor(null); }}><Icon>⌁</Icon><span>活动数据</span></button></nav>
       <div className="sidebar-help"><span>?</span><div><strong>需要帮助？</strong><small>查看活动配置规范</small></div></div>
     </aside>
     <main>

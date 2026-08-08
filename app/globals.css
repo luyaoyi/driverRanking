@@ -40,7 +40,6 @@ button:disabled { cursor: not-allowed; opacity: .48; }
 .brand small { display: block; color: #8e9aad; font-size: 11px; margin-top: 3px; }
 .sidebar nav { padding: 18px 12px; flex: 1; }
 .nav-section { display: block; color: #748095; font-size: 11px; letter-spacing: .14em; padding: 0 12px 9px; text-transform: uppercase; }
-.muted-section { margin-top: 24px; }
 .sidebar nav button { width: 100%; border: 0; color: #aeb8c8; background: transparent; display: flex; align-items: center; gap: 12px; padding: 11px 12px; margin: 2px 0; border-radius: 8px; text-align: left; transition: .18s ease; }
 .sidebar nav button:hover:not(:disabled) { color: #fff; background: rgba(255,255,255,.06); }
 .sidebar nav button.active { color: #fff; background: linear-gradient(90deg, rgba(43,108,240,.28), rgba(43,108,240,.12)); box-shadow: inset 3px 0 0 #4d8bff; }
@@ -197,13 +196,6 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--brand); }
 .live-pill { padding: 7px 11px; background: var(--green-soft); color: var(--green); border-radius: 16px; font-size: 11px; font-weight: 600; }
 .live-pill i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 5px; box-shadow: 0 0 0 4px rgba(22,156,103,.1); }
 .data-filter .filter-grid { grid-template-columns: repeat(4, minmax(160px, 1fr)); max-width: none; }
-.metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
-.metric-grid > div { background: #fff; border: 1px solid var(--line); border-radius: 9px; padding: 17px; position: relative; overflow: hidden; }
-.metric-grid > div::before { content: ""; width: 4px; position: absolute; left: 0; top: 14px; bottom: 14px; border-radius: 3px; background: #5a8eed; }
-.metric-grid span { display: block; color: #778294; font-size: 11px; margin-bottom: 9px; }
-.metric-grid strong { font-size: 22px; letter-spacing: -.02em; }
-.metric-grid small { color: #9aa4b0; margin-left: 6px; }
-.metric-grid .small-metric { font-size: 19px; }
 .rank-note { color: #8d97a5; font-size: 10px; }
 .rank-badge { width: 28px; height: 28px; display: inline-grid; place-items: center; border-radius: 7px; background: #eef1f5; color: #667286; font-weight: 800; }
 .rank-badge.r1 { color: #ad730b; background: #fff3cd; }
@@ -237,7 +229,6 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--brand); }
 @media (max-width: 1180px) {
   .filter-grid { grid-template-columns: repeat(2, 1fr); }
   .form-grid.two, .reward-types { grid-template-columns: 1fr; }
-  .metric-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 820px) {
