@@ -164,7 +164,7 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
   const [statsStart, setStatsStart] = useState("2026-09-05T00:00");
   const [statsEnd, setStatsEnd] = useState("2026-09-25T23:59");
   const [audiences, setAudiences] = useState({ xianzhi: true, volume: false, tag: true, ab: true });
-  const [orderLimits, setOrderLimits] = useState({ business: true, amount: true, mileage: true });
+  const [orderMileageLimit, setOrderMileageLimit] = useState(true);
   const [groupsLoaded, setGroupsLoaded] = useState(false);
   const [rules, setRules] = useState<RewardRule[]>([
     { id: 1, from: 1, to: 1, normal: true, normalName: "华为运动手表", code: "ACT202609WATCH", cash: true, amount: 500 },
@@ -254,19 +254,11 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
         </section>
 
         <section className="form-section">
-          <div className="section-head"><span>03</span><div><h3>订单限制条件</h3><p>各限制可独立启用，多项限制同时启用时需全部满足</p></div></div>
+          <div className="section-head"><span>03</span><div><h3>订单限制条件</h3><p>支持按订单公里数限制计入活动的完单</p></div></div>
           <div className="condition-list">
             <div className="condition-item">
-              <div className="condition-title"><Switch checked={orderLimits.business} disabled={readOnly} onChange={(v) => setOrderLimits({ ...orderLimits, business: v })} /><div><strong>订单业务类型限制</strong><span>仅指定业务类型的完单可计入活动</span></div></div>
-              {orderLimits.business && <div className="condition-fields one"><Field label="订单业务类型" required><div className="multi-select"><span>快车 ×</span><span>特惠快车 ×</span></div></Field></div>}
-            </div>
-            <div className="condition-item">
-              <div className="condition-title"><Switch checked={orderLimits.amount} disabled={readOnly} onChange={(v) => setOrderLimits({ ...orderLimits, amount: v })} /><div><strong>订单金额限制</strong><span>配置订单最低金额，大于等于该金额时满足限制</span></div></div>
-              {orderLimits.amount && <div className="condition-fields one"><Field label="订单最低金额" required hint="订单金额大于等于该金额时满足限制"><div className="unit-input"><input type="number" min="0" step="0.01" defaultValue={20} disabled={readOnly} /><span>元</span></div></Field></div>}
-            </div>
-            <div className="condition-item">
-              <div className="condition-title"><Switch checked={orderLimits.mileage} disabled={readOnly} onChange={(v) => setOrderLimits({ ...orderLimits, mileage: v })} /><div><strong>订单公里数限制</strong><span>配置订单最小公里数，大于等于该公里数时满足限制</span></div></div>
-              {orderLimits.mileage && <div className="condition-fields one"><Field label="订单最小公里数" required hint="订单公里数大于等于该公里数时满足限制"><div className="unit-input"><input type="number" min="0" step="0.1" defaultValue={10} disabled={readOnly} /><span>公里</span></div></Field></div>}
+              <div className="condition-title"><Switch checked={orderMileageLimit} disabled={readOnly} onChange={setOrderMileageLimit} /><div><strong>订单公里数限制</strong><span>配置订单最小公里数，大于等于该公里数时满足限制</span></div></div>
+              {orderMileageLimit && <div className="condition-fields one"><Field label="订单最小公里数" required hint="订单公里数大于等于该公里数时满足限制"><div className="unit-input"><input type="number" min="0" step="0.1" defaultValue={10} disabled={readOnly} /><span>公里</span></div></Field></div>}
             </div>
           </div>
         </section>
