@@ -221,8 +221,8 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
               {audiences.xianzhi && <div className="condition-fields"><Field label="先知场景" required><select disabled={readOnly}><option>真车主活动人群</option><option>司机精细化运营</option></select></Field><Field label="先知人群标签" required><div className="multi-select"><span>高活跃真车主 ×</span><span>里程潜力司机 ×</span></div></Field></div>}
             </div>
             <div className="condition-item">
-              <div className="condition-title"><Switch checked={audiences.volume} disabled={readOnly} onChange={(v) => setAudiences({ ...audiences, volume: v })} /><div><strong>司机接单量限制</strong><span>按现有接单量口径限制参与资格</span></div></div>
-              {audiences.volume && <div className="condition-fields"><Field label="统计周期" required><select disabled={readOnly}><option>近30个自然日</option></select></Field><Field label="接单量条件" required><div className="inline-input"><select disabled={readOnly}><option>大于等于</option></select><input type="number" defaultValue={30} disabled={readOnly} /><i>单</i></div></Field></div>}
+              <div className="condition-title"><Switch checked={audiences.volume} disabled={readOnly} onChange={(v) => setAudiences({ ...audiences, volume: v })} /><div><strong>司机完单量限制</strong><span>配置司机完单量阈值，大于等于阈值时满足限制</span></div></div>
+              {audiences.volume && <div className="condition-fields one"><Field label="司机完单量阈值" required hint="司机完单量大于等于该阈值时满足限制"><div className="unit-input"><input type="number" min="0" step="1" defaultValue={30} disabled={readOnly} /><span>单</span></div></Field></div>}
             </div>
             <div className="condition-item">
               <div className="condition-title"><Switch checked={audiences.tag} disabled={readOnly} onChange={(v) => setAudiences({ ...audiences, tag: v })} /><div><strong>司机标签限制</strong><span>命中任一已选标签即满足本项限制</span></div></div>
