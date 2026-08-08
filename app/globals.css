@@ -219,6 +219,8 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--brand); }
 .driver-summary span { color: #8993a2; font-size: 10px; margin-bottom: 7px; }
 .driver-summary strong { font-size: 13px; }
 .drawer-table { margin: 0 18px; background: #fff; border: 1px solid var(--line); border-radius: 9px; overflow: auto; flex: 1; }
+.reward-detail-table { flex: none; margin-bottom: 12px; max-height: 250px; }
+.order-detail-table { min-height: 220px; }
 .drawer-table td strong, .drawer-table td small { display: block; }
 .drawer-table td small { margin-top: 4px; color: #939ca9; }
 .drawer-foot { min-height: 68px; background: #fff; border-top: 1px solid var(--line); padding: 0 18px; display: flex; align-items: center; justify-content: space-between; }

@@ -28,6 +28,15 @@ type RewardRule = {
   amount: number;
 };
 
+type RewardDetail = {
+  id: number;
+  type: "普通奖品" | "现金奖品";
+  content: string;
+  claimStatus: "领取成功" | "领取失败" | "补发中";
+  couponNo: string;
+  paymentStatus?: "待打款" | "打款中" | "打款成功" | "打款失败";
+};
+
 const initialConfigs: ActivityConfig[] = [
   {
     id: 1,
@@ -76,20 +85,29 @@ const initialConfigs: ActivityConfig[] = [
 ];
 
 const drivers = [
-  { rank: 1, mid: "126833921", phone: "**** 6812", city: "杭州市", mileage: "3,286.5", orders: 186, last: "2026-08-09 11:26:18" },
-  { rank: 2, mid: "884102376", phone: "**** 0397", city: "杭州市", mileage: "3,102.8", orders: 173, last: "2026-08-09 11:18:45" },
-  { rank: 3, mid: "532771904", phone: "**** 5271", city: "杭州市", mileage: "2,984.2", orders: 169, last: "2026-08-09 10:56:33" },
-  { rank: 4, mid: "291406835", phone: "**** 9480", city: "杭州市", mileage: "2,801.6", orders: 157, last: "2026-08-09 10:42:16" },
-  { rank: 5, mid: "733905214", phone: "**** 1208", city: "杭州市", mileage: "2,677.9", orders: 151, last: "2026-08-09 10:11:09" },
-  { rank: 6, mid: "408126753", phone: "**** 7734", city: "杭州市", mileage: "2,591.3", orders: 148, last: "2026-08-09 09:58:22" },
+  { rank: 1, mid: "126833921", phone: "**** 6812", city: "杭州市", mileage: "3,286.5", orders: 186, last: "2026-08-09 11:26:18", rewardStatus: "已发放" },
+  { rank: 2, mid: "884102376", phone: "**** 0397", city: "杭州市", mileage: "3,102.8", orders: 173, last: "2026-08-09 11:18:45", rewardStatus: "已发放" },
+  { rank: 3, mid: "532771904", phone: "**** 5271", city: "杭州市", mileage: "2,984.2", orders: 169, last: "2026-08-09 10:56:33", rewardStatus: "已发放" },
+  { rank: 4, mid: "291406835", phone: "**** 9480", city: "杭州市", mileage: "2,801.6", orders: 157, last: "2026-08-09 10:42:16", rewardStatus: "已发放" },
+  { rank: 5, mid: "733905214", phone: "**** 1208", city: "杭州市", mileage: "2,677.9", orders: 151, last: "2026-08-09 10:11:09", rewardStatus: "未发放" },
+  { rank: 6, mid: "408126753", phone: "**** 7734", city: "杭州市", mileage: "2,591.3", orders: 148, last: "2026-08-09 09:58:22", rewardStatus: "未发放" },
 ];
 
-const rewards = [
-  { rank: 1, mid: "126833921", phone: "**** 6812", city: "上海市", type: "普通奖品", content: "华为运动手表", code: "ACT202607WATCH", status: "发放成功", time: "2026-08-01 00:02:18" },
-  { rank: 1, mid: "126833921", phone: "**** 6812", city: "上海市", type: "现金奖品", content: "500元", code: "—", status: "发放成功", time: "2026-08-01 00:02:24" },
-  { rank: 2, mid: "884102376", phone: "**** 0397", city: "上海市", type: "现金奖品", content: "300元", code: "—", status: "发放成功", time: "2026-08-01 00:02:29" },
-  { rank: 3, mid: "532771904", phone: "**** 5271", city: "上海市", type: "普通奖品", content: "200元加油卡", code: "ACT202607FUEL", status: "发放失败", time: "—" },
-];
+const driverRewards: Record<string, RewardDetail[]> = {
+  "126833921": [
+    { id: 1, type: "普通奖品", content: "华为运动手表", claimStatus: "领取成功", couponNo: "CPN202608126833921" },
+    { id: 2, type: "现金奖品", content: "500元", claimStatus: "领取成功", couponNo: "—", paymentStatus: "打款成功" },
+  ],
+  "884102376": [
+    { id: 3, type: "现金奖品", content: "300元", claimStatus: "领取成功", couponNo: "—", paymentStatus: "打款中" },
+  ],
+  "532771904": [
+    { id: 4, type: "普通奖品", content: "200元加油卡", claimStatus: "领取失败", couponNo: "—" },
+  ],
+  "291406835": [
+    { id: 5, type: "现金奖品", content: "100元", claimStatus: "领取成功", couponNo: "—", paymentStatus: "打款失败" },
+  ],
+};
 
 const orderDetails = [
   { no: "DD2026080900186271", time: "2026-08-09 11:26:18", city: "杭州市", km: "18.6", counted: "2026-08-09 11:26:20" },
@@ -107,7 +125,7 @@ function StatusTag({ value }: { value: string }) {
     ? "danger"
     : value.includes("统计中") || value.includes("发放中")
       ? "running"
-      : value.includes("成功") || value === "有效"
+      : value.includes("成功") || value === "有效" || value === "已发放"
         ? "success"
         : "neutral";
   return <span className={`tag ${cls}`}><i />{value}</span>;
@@ -285,26 +303,25 @@ function ConfigList({ configs, onOpen }: { configs: ActivityConfig[]; onOpen: (m
 }
 
 function DataPage({ onDetail }: { onDetail: (mid: string) => void }) {
-  const [tab, setTab] = useState<"drivers" | "rewards">("drivers");
   return <>
-    <div className="content-heading"><div><span className="eyebrow">活动运营</span><h1>活动数据</h1><p>查看司机累计里程、订单明细与奖励发放结果</p></div><div className="live-pill"><i /> 实时数据</div></div>
-    <div className="tabs"><button className={tab === "drivers" ? "active" : ""} onClick={() => setTab("drivers")}>司机里程数据</button><button className={tab === "rewards" ? "active" : ""} onClick={() => setTab("rewards")}>奖品发放明细</button></div>
+    <div className="content-heading"><div><span className="eyebrow">活动运营</span><h1>活动数据</h1><p>查看司机累计里程、订单明细与奖励信息</p></div><div className="live-pill"><i /> 实时数据</div></div>
     <section className="panel filter-panel data-filter">
       <div className="filter-grid">
-        <Field label="活动Code" required><input key={tab} defaultValue={tab === "drivers" ? "MILEAGE_RANK_HZ_202608" : "MILEAGE_RANK_SH_202607"} placeholder="请输入活动Code" /></Field>
+        <Field label="活动名称" required><select defaultValue="盛夏真车主里程挑战赛"><option>盛夏真车主里程挑战赛</option><option>申城真车主公里榜</option><option>蓉城金秋里程赛</option></select></Field>
         <Field label="mid"><input placeholder="请输入mid" /></Field>
         <Field label="手机号后四位"><input maxLength={4} placeholder="请输入4位数字" /></Field>
-        {tab === "rewards" && <><Field label="奖励类型"><select><option>全部</option><option>普通奖品</option><option>现金奖品</option></select></Field><Field label="发放状态"><select><option>全部</option><option>发放成功</option><option>发放失败</option></select></Field></>}
       </div><div className="filter-actions"><button className="secondary">重置</button><button className="primary">查询</button></div>
     </section>
-    {tab === "drivers" ? <>
-      <section className="panel table-panel"><div className="panel-title"><div><h3>司机里程排行榜</h3><span>当前展示：杭州市</span></div><span className="rank-note">里程越高排名越靠前</span></div><div className="table-wrap"><table><thead><tr><th>名次</th><th>mid / 手机号</th><th>归属城市</th><th>累计公里数</th><th>计入订单数</th><th>最近计入时间</th><th className="right">操作</th></tr></thead><tbody>{drivers.map((item) => <tr key={item.mid}><td><span className={`rank-badge r${item.rank}`}>{item.rank}</span></td><td><strong>{item.mid}</strong><span className="subline">{item.phone}</span></td><td>{item.city}</td><td><strong className="mileage">{item.mileage}</strong><span className="unit"> km</span></td><td>{item.orders} 单</td><td>{item.last}</td><td className="right actions"><button onClick={() => onDetail(item.mid)}>查看明细</button></td></tr>)}</tbody></table></div><div className="pagination"><span>共 2,486 条</span><select><option>20 条/页</option></select><button>‹</button><button className="active">1</button><button>2</button><button>3</button><button>›</button></div></section>
-    </> : <section className="panel table-panel"><div className="panel-title"><div><h3>奖品发放记录</h3><span>普通奖品与现金奖品分别生成记录</span></div></div><div className="table-wrap"><table><thead><tr><th>最终名次</th><th>mid / 手机号</th><th>城市</th><th>奖励类型</th><th>奖励内容</th><th>活动Code</th><th>发放状态</th><th>发放时间</th></tr></thead><tbody>{rewards.map((item, index) => <tr key={`${item.mid}-${index}`}><td><span className={`rank-badge r${item.rank}`}>{item.rank}</span></td><td><strong>{item.mid}</strong><span className="subline">{item.phone}</span></td><td>{item.city}</td><td><span className={`reward-label ${item.type === "现金奖品" ? "cash" : "normal"}`}>{item.type}</span></td><td><strong>{item.content}</strong></td><td>{item.code}</td><td><StatusTag value={item.status} /></td><td>{item.time}</td></tr>)}</tbody></table></div><div className="pagination"><span>共 4 条</span><button className="active">1</button></div></section>}
+    <section className="panel table-panel"><div className="panel-title"><div><h3>司机里程排行榜</h3><span>当前展示：杭州市</span></div><span className="rank-note">里程越高排名越靠前</span></div><div className="table-wrap"><table><thead><tr><th>名次</th><th>mid / 手机号</th><th>归属城市</th><th>累计公里数</th><th>计入订单数</th><th>奖励状态</th><th>最近计入时间</th><th className="right">操作</th></tr></thead><tbody>{drivers.map((item) => <tr key={item.mid}><td><span className={`rank-badge r${item.rank}`}>{item.rank}</span></td><td><strong>{item.mid}</strong><span className="subline">{item.phone}</span></td><td>{item.city}</td><td><strong className="mileage">{item.mileage}</strong><span className="unit"> km</span></td><td>{item.orders} 单</td><td><StatusTag value={item.rewardStatus} /></td><td>{item.last}</td><td className="right actions"><button onClick={() => onDetail(item.mid)}>查看明细</button></td></tr>)}</tbody></table></div><div className="pagination"><span>共 2,486 条</span><select><option>20 条/页</option></select><button>‹</button><button className="active">1</button><button>2</button><button>3</button><button>›</button></div></section>
   </>;
 }
 
 function OrderDrawer({ mid, onClose }: { mid: string; onClose: () => void }) {
-  return <div className="drawer-mask" onMouseDown={onClose}><aside className="drawer" onMouseDown={(e) => e.stopPropagation()}><div className="drawer-head"><div><span className="eyebrow">订单里程明细</span><h2>司机 {mid}</h2></div><button onClick={onClose}>×</button></div><div className="driver-summary"><div><span>归属城市</span><strong>杭州市</strong></div><div><span>累计公里数</span><strong>3,286.5 km</strong></div><div><span>当前名次</span><strong>第 1 名</strong></div><div><span>手机号</span><strong>**** 6812</strong></div></div><div className="drawer-table"><div className="panel-title"><div><h3>计入订单</h3><span>共 186 单</span></div></div><table><thead><tr><th>订单号 / 完单时间</th><th>出发城市</th><th>订单公里数</th><th>计入时间</th></tr></thead><tbody>{orderDetails.map((item) => <tr key={item.no}><td><strong>{item.no}</strong><small>{item.time}</small></td><td>{item.city}</td><td><strong className="mileage">{item.km}</strong> km</td><td>{item.counted}</td></tr>)}</tbody></table></div><div className="drawer-foot"><span>明细里程合计与司机累计公里数保持一致</span><button className="primary" onClick={onClose}>关闭</button></div></aside></div>;
+  const driver = drivers.find((item) => item.mid === mid) ?? drivers[0];
+  const [rewardItems, setRewardItems] = useState<RewardDetail[]>(driverRewards[mid] ?? []);
+  const reissue = (id: number) => setRewardItems((items) => items.map((item) => item.id === id ? { ...item, claimStatus: "补发中" } : item));
+
+  return <div className="drawer-mask" onMouseDown={onClose}><aside className="drawer" onMouseDown={(e) => e.stopPropagation()}><div className="drawer-head"><div><span className="eyebrow">司机里程与奖励明细</span><h2>司机 {mid}</h2></div><button onClick={onClose}>×</button></div><div className="driver-summary"><div><span>归属城市</span><strong>{driver.city}</strong></div><div><span>累计公里数</span><strong>{driver.mileage} km</strong></div><div><span>当前名次</span><strong>第 {driver.rank} 名</strong></div><div><span>奖励状态</span><StatusTag value={driver.rewardStatus} /></div></div>{driver.rewardStatus === "已发放" && <div className="drawer-table reward-detail-table"><div className="panel-title"><div><h3>奖品信息</h3><span>普通奖品与现金奖品分别展示</span></div></div><table><thead><tr><th>奖品类型</th><th>奖励内容</th><th>领取状态</th><th>券号</th><th>打款状态</th><th className="right">操作</th></tr></thead><tbody>{rewardItems.map((item) => <tr key={item.id}><td><span className={`reward-label ${item.type === "现金奖品" ? "cash" : "normal"}`}>{item.type}</span></td><td><strong>{item.content}</strong></td><td><StatusTag value={item.claimStatus} /></td><td>{item.couponNo}</td><td>{item.type === "现金奖品" ? <StatusTag value={item.paymentStatus ?? "待打款"} /> : "—"}</td><td className="right actions">{item.claimStatus === "领取失败" ? <button onClick={() => reissue(item.id)}>补发</button> : item.claimStatus === "补发中" ? <button disabled>补发中</button> : "—"}</td></tr>)}</tbody></table></div>}<div className="drawer-table order-detail-table"><div className="panel-title"><div><h3>计入订单</h3><span>共 {driver.orders} 单</span></div></div><table><thead><tr><th>订单号 / 完单时间</th><th>出发城市</th><th>订单公里数</th><th>计入时间</th></tr></thead><tbody>{orderDetails.map((item) => <tr key={item.no}><td><strong>{item.no}</strong><small>{item.time}</small></td><td>{item.city}</td><td><strong className="mileage">{item.km}</strong> km</td><td>{item.counted}</td></tr>)}</tbody></table></div><div className="drawer-foot"><span>明细里程合计与司机累计公里数保持一致</span><button className="primary" onClick={onClose}>关闭</button></div></aside></div>;
 }
 
 export default function Home() {
