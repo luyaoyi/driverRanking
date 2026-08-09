@@ -163,6 +163,7 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
   onSave: (config: ActivityConfig) => void;
 }) {
   const readOnly = mode === "view";
+  const fixedTimeFields = mode !== "new";
   const [name, setName] = useState(current?.name ?? "");
   const [city, setCity] = useState(current?.city ?? "杭州市");
   const [status, setStatus] = useState<ActivityStatus>(current?.status ?? "有效");
@@ -247,11 +248,11 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
             <Field label="活动投放时间" required>
               <div className="date-range"><input type="datetime-local" value={deliveryStart} onChange={(e) => setDeliveryStart(e.target.value)} disabled={readOnly} /><em>至</em><input type="datetime-local" value={deliveryEnd} onChange={(e) => setDeliveryEnd(e.target.value)} disabled={readOnly} /></div>
             </Field>
-            <Field label="订单统计时间" required hint="统计时间必须完整落在活动投放时间内">
-              <div className="date-range"><input type="datetime-local" value={statsStart} onChange={(e) => setStatsStart(e.target.value)} disabled={readOnly} /><em>至</em><input type="datetime-local" value={statsEnd} onChange={(e) => setStatsEnd(e.target.value)} disabled={readOnly} /></div>
+            <Field label="订单统计时间" required hint={fixedTimeFields ? "创建后不可修改" : "统计时间必须完整落在活动投放时间内"}>
+              <div className="date-range"><input type="datetime-local" value={statsStart} onChange={(e) => setStatsStart(e.target.value)} disabled={fixedTimeFields} /><em>至</em><input type="datetime-local" value={statsEnd} onChange={(e) => setStatsEnd(e.target.value)} disabled={fixedTimeFields} /></div>
             </Field>
-            <Field label="用车时间" required hint="用车时间必须完整落在订单统计时间内；订单判断以最早用车时间为准">
-              <div className="date-range"><input type="datetime-local" min={statsStart} max={statsEnd} value={useStart} onChange={(e) => setUseStart(e.target.value)} disabled={readOnly} required /><em>至</em><input type="datetime-local" min={statsStart} max={statsEnd} value={useEnd} onChange={(e) => setUseEnd(e.target.value)} disabled={readOnly} required /></div>
+            <Field label="用车时间" required hint={fixedTimeFields ? "创建后不可修改；订单判断以最早用车时间为准" : "用车时间必须完整落在订单统计时间内；订单判断以最早用车时间为准"}>
+              <div className="date-range"><input type="datetime-local" min={statsStart} max={statsEnd} value={useStart} onChange={(e) => setUseStart(e.target.value)} disabled={fixedTimeFields} required /><em>至</em><input type="datetime-local" min={statsStart} max={statsEnd} value={useEnd} onChange={(e) => setUseEnd(e.target.value)} disabled={fixedTimeFields} required /></div>
             </Field>
           </div>
         </section>
@@ -360,7 +361,7 @@ function ConfigList({ configs, onOpen }: { configs: ActivityConfig[]; onOpen: (m
     </section>
     <section className="panel table-panel">
       <div className="panel-title"><div><h3>配置列表</h3><span>共 {rows.length} 条配置</span></div><button className="icon-button" title="刷新">↻</button></div>
-      <div className="table-wrap"><table><thead><tr><th>序号</th><th>活动名称 / 城市</th><th>活动状态</th><th>活动投放时间</th><th>订单统计时间</th><th>更新信息</th><th className="right">操作</th></tr></thead><tbody>{rows.map((item, index) => <tr key={item.id}><td className="muted">{String(index + 1).padStart(2, "0")}</td><td><button className="table-main" onClick={() => onOpen("view", item)}>{item.name}</button><span className="subline"><b>⌖</b>{item.city}</span></td><td><StatusTag value={item.status} /></td><td className="time-cell">{item.delivery.split(" — ").map((t) => <span key={t}>{t}</span>)}</td><td className="time-cell">{item.statistics.split(" — ").map((t) => <span key={t}>{t}</span>)}</td><td><span>{item.updater}</span><small>{item.updatedAt}</small></td><td className="right actions"><button onClick={() => onOpen("view", item)}>查看</button><button disabled={item.stage !== "未开始"} onClick={() => onOpen("edit", item)}>编辑</button></td></tr>)}</tbody></table></div>
+      <div className="table-wrap"><table><thead><tr><th>序号</th><th>活动名称 / 城市</th><th>活动状态</th><th>活动投放时间</th><th>订单统计时间</th><th>更新信息</th><th className="right">操作</th></tr></thead><tbody>{rows.map((item, index) => <tr key={item.id}><td className="muted">{String(index + 1).padStart(2, "0")}</td><td><button className="table-main" onClick={() => onOpen("view", item)}>{item.name}</button><span className="subline"><b>⌖</b>{item.city}</span></td><td><StatusTag value={item.status} /></td><td className="time-cell">{item.delivery.split(" — ").map((t) => <span key={t}>{t}</span>)}</td><td className="time-cell">{item.statistics.split(" — ").map((t) => <span key={t}>{t}</span>)}</td><td><span>{item.updater}</span><small>{item.updatedAt}</small></td><td className="right actions"><button onClick={() => onOpen("view", item)}>查看</button><button onClick={() => onOpen("edit", item)}>编辑</button></td></tr>)}</tbody></table></div>
       <div className="pagination"><span>共 {rows.length} 条</span><select defaultValue="20"><option>10 条/页</option><option>20 条/页</option><option>50 条/页</option></select><button disabled>‹</button><button className="active">1</button><button disabled>›</button></div>
     </section>
   </>;
