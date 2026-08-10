@@ -35,6 +35,12 @@ type IncentiveDriver = {
   mileage: number;
 };
 
+type CityIncentiveConfig = {
+  id: number;
+  cities: string[];
+  drivers: IncentiveDriver[];
+};
+
 type RewardDetail = {
   id: number;
   type: "普通奖品" | "现金奖品";
@@ -123,6 +129,16 @@ const orderDetails = [
   { no: "DD2026080800927185", time: "2026-08-08 22:18:45", city: "杭州市", km: "31.5", counted: "2026-08-08 22:18:48" },
 ];
 
+const cityOptions = [
+  { name: "杭州市", code: "330100" },
+  { name: "上海市", code: "310000" },
+  { name: "成都市", code: "510100" },
+  { name: "深圳市", code: "440300" },
+  { name: "南京市", code: "320100" },
+];
+
+const parseCities = (value?: string) => value?.split(/[、,，]/).map((item) => item.trim()).filter(Boolean) ?? [];
+
 function Icon({ children }: { children: ReactNode }) {
   return <span className="nav-icon" aria-hidden="true">{children}</span>;
 }
@@ -165,7 +181,9 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
   const readOnly = mode === "view";
   const fixedTimeFields = mode !== "new";
   const [name, setName] = useState(current?.name ?? "");
-  const [city, setCity] = useState(current?.city ?? "杭州市");
+  const initialCities = parseCities(current?.city);
+  const defaultCities = initialCities.length ? initialCities : ["杭州市", "上海市"];
+  const [cities, setCities] = useState<string[]>(defaultCities);
   const [status, setStatus] = useState<ActivityStatus>(current?.status ?? "有效");
   const [deliveryStart, setDeliveryStart] = useState("2026-09-01T00:00");
   const [deliveryEnd, setDeliveryEnd] = useState("2026-09-30T23:59");
@@ -181,6 +199,12 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
     { id: 1, phoneSuffix: "6812", mileage: 3286.5 },
     { id: 2, phoneSuffix: "0397", mileage: 3102.8 },
   ]);
+  const [incentiveByCity, setIncentiveByCity] = useState(false);
+  const [cityIncentives, setCityIncentives] = useState<CityIncentiveConfig[]>(() => defaultCities.slice(0, 2).map((cityName, index) => ({
+    id: index + 1,
+    cities: [cityName],
+    drivers: [{ id: (index + 1) * 10 + 1, phoneSuffix: index === 0 ? "6812" : "0397", mileage: index === 0 ? 3286.5 : 3102.8 }],
+  })));
   const [groupsLoaded, setGroupsLoaded] = useState(false);
   const [rules, setRules] = useState<RewardRule[]>([
     { id: 1, from: 1, to: 1, normal: true, normalName: "华为运动手表", code: "ACT202609WATCH", cash: true, cashCode: "CASH_DYNAMIC_202609", amount: 500 },
@@ -195,16 +219,63 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
     setIncentiveDrivers((items) => items.map((item) => item.id === id ? { ...item, [key]: value } : item));
   };
 
+  const toggleActivityCity = (name: string) => {
+    setCities((items) => {
+      const next = items.includes(name) ? items.filter((item) => item !== name) : [...items, name];
+      setCityIncentives((configs) => configs.map((config) => ({ ...config, cities: config.cities.filter((city) => next.includes(city)) })));
+      return next;
+    });
+  };
+
+  const toggleIncentiveCity = (configId: number, name: string) => {
+    setCityIncentives((items) => items.map((item) => item.id === configId
+      ? { ...item, cities: item.cities.includes(name) ? item.cities.filter((city) => city !== name) : [...item.cities, name] }
+      : item));
+  };
+
+  const addCityIncentive = () => {
+    const used = new Set(cityIncentives.flatMap((item) => item.cities));
+    const firstAvailable = cities.find((city) => !used.has(city));
+    setCityIncentives([...cityIncentives, { id: Date.now(), cities: firstAvailable ? [firstAvailable] : [], drivers: [] }]);
+  };
+
+  const addCityDriver = (configId: number) => {
+    setCityIncentives((items) => items.map((item) => item.id === configId
+      ? { ...item, drivers: [...item.drivers, { id: Date.now(), phoneSuffix: "", mileage: 0 }] }
+      : item));
+  };
+
+  const updateCityDriver = (configId: number, driverId: number, key: "phoneSuffix" | "mileage", value: string | number) => {
+    setCityIncentives((items) => items.map((item) => item.id === configId
+      ? { ...item, drivers: item.drivers.map((driver) => driver.id === driverId ? { ...driver, [key]: value } : driver) }
+      : item));
+  };
+
+  const removeCityDriver = (configId: number, driverId: number) => {
+    setCityIncentives((items) => items.map((item) => item.id === configId
+      ? { ...item, drivers: item.drivers.filter((driver) => driver.id !== driverId) }
+      : item));
+  };
+
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!name.trim()) return;
+    if (!cities.length) return;
     if (useStart < statsStart || useEnd > statsEnd || useStart >= useEnd) return;
-    if (incentiveStart >= incentiveEnd || incentiveDrivers.some((item) => !/^\d{4}$/.test(item.phoneSuffix) || item.mileage < 0)) return;
+    if (incentiveStart >= incentiveEnd) return;
+    const invalidDriver = (item: IncentiveDriver) => !/^\d{4}$/.test(item.phoneSuffix) || item.mileage < 0;
+    if (!incentiveByCity && incentiveDrivers.some(invalidDriver)) return;
+    if (incentiveByCity) {
+      const assignedCities = cityIncentives.flatMap((item) => item.cities);
+      const hasOverlap = new Set(assignedCities).size !== assignedCities.length;
+      const invalidCityConfig = !cityIncentives.length || cityIncentives.some((item) => !item.cities.length || item.cities.some((city) => !cities.includes(city)) || item.drivers.some(invalidDriver));
+      if (hasOverlap || invalidCityConfig) return;
+    }
     if (!rules.length || rules.some((rule) => (!rule.normal && !rule.cash) || (rule.cash && !rule.cashCode.trim()))) return;
     onSave({
       id: current?.id ?? Date.now(),
       name,
-      city,
+      city: cities.join("、"),
       status,
       stage: current?.stage ?? "未开始",
       delivery: `${deliveryStart.replace("T", " ")}:00 — ${deliveryEnd.replace("T", " ")}:00`,
@@ -224,7 +295,7 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
             <h2>{mode === "new" ? "新增活动配置" : mode === "edit" ? "编辑活动配置" : "查看活动配置"}</h2>
           </div>
         </div>
-        <span className="editor-note">一个活动配置对应一个城市</span>
+        <span className="editor-note">一个活动配置可选择多个城市</span>
       </div>
 
       <form className="editor-form" onSubmit={submit}>
@@ -240,11 +311,12 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
               </div>
             </Field>
             <Field label="城市限制" required>
-              <select value={city} onChange={(e) => setCity(e.target.value)} disabled={readOnly}>
-                {['杭州市', '上海市', '成都市', '深圳市', '南京市'].map((item) => <option key={item}>{item}</option>)}
-              </select>
+              <div className={`checkbox-picker ${readOnly ? "disabled" : ""}`}>
+                {cityOptions.map((item) => <label className={cities.includes(item.name) ? "selected" : ""} key={item.name}><input type="checkbox" checked={cities.includes(item.name)} onChange={() => toggleActivityCity(item.name)} disabled={readOnly} /><span>{item.name}</span></label>)}
+              </div>
+              {!cities.length && <small className="field-error">请至少选择一个城市</small>}
             </Field>
-            <div className="field info-box"><span>城市编码</span><strong>{city === "杭州市" ? "330100" : city === "上海市" ? "310000" : "系统自动带出"}</strong><small>保存城市编码，绑定后不可修改</small></div>
+            <div className="field info-box"><span>城市编码</span><strong>{cities.length ? cities.map((name) => cityOptions.find((item) => item.name === name)?.code).join("、") : "—"}</strong><small>根据所选城市自动带出，保存后绑定不变</small></div>
             <Field label="活动投放时间" required>
               <div className="date-range"><input type="datetime-local" value={deliveryStart} onChange={(e) => setDeliveryStart(e.target.value)} disabled={readOnly} /><em>至</em><input type="datetime-local" value={deliveryEnd} onChange={(e) => setDeliveryEnd(e.target.value)} disabled={readOnly} /></div>
             </Field>
@@ -290,22 +362,62 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
         </section>
 
         <section className="form-section rewards-section">
-          <div className="section-head"><span>04</span><div><h3>激励司机配置</h3><p>配置指定有效期内展示的司机累计公里数</p></div>{!readOnly && <button className="secondary" type="button" onClick={() => setIncentiveDrivers([...incentiveDrivers, { id: Date.now(), phoneSuffix: "", mileage: 0 }])}>＋ 新增司机</button>}</div>
+          <div className="section-head"><span>04</span><div><h3>激励司机配置</h3><p>支持统一配置或按照城市分别维护激励司机及累计公里数</p></div></div>
           <div className="form-grid two incentive-period">
             <Field label="激励司机配置有效期" required>
               <div className="date-range"><input type="datetime-local" value={incentiveStart} onChange={(e) => setIncentiveStart(e.target.value)} disabled={readOnly} required /><em>至</em><input type="datetime-local" value={incentiveEnd} onChange={(e) => setIncentiveEnd(e.target.value)} disabled={readOnly} required /></div>
             </Field>
+            <Field label="是否按照城市配置" required hint="选择“是”后，不同城市配置的适用城市不可重复">
+              <div className="radio-row">
+                <label><input type="radio" checked={!incentiveByCity} onChange={() => setIncentiveByCity(false)} disabled={readOnly} />否，统一配置</label>
+                <label><input type="radio" checked={incentiveByCity} onChange={() => setIncentiveByCity(true)} disabled={readOnly} />是，按城市配置</label>
+              </div>
+            </Field>
           </div>
-          <div className="driver-config-list">
-            <div className="driver-config-head"><span>序号</span><span>司机手机尾号</span><span>司机累计公里数</span><span>操作</span></div>
-            {incentiveDrivers.map((item, index) => <div className="driver-config-row" key={item.id}>
-              <strong>{String(index + 1).padStart(2, "0")}</strong>
-              <input value={item.phoneSuffix} maxLength={4} inputMode="numeric" placeholder="请输入4位数字" onChange={(e) => updateIncentiveDriver(item.id, "phoneSuffix", e.target.value.replace(/\D/g, "").slice(0, 4))} disabled={readOnly} required />
-              <div className="unit-input"><input type="number" min="0" step="0.1" value={item.mileage} onChange={(e) => updateIncentiveDriver(item.id, "mileage", Number(e.target.value))} disabled={readOnly} required /><span>公里</span></div>
-              {!readOnly ? <button type="button" onClick={() => setIncentiveDrivers(incentiveDrivers.filter((driver) => driver.id !== item.id))}>删除</button> : <span>—</span>}
-            </div>)}
-            {!incentiveDrivers.length && <div className="driver-config-empty">暂未配置激励司机，可点击“新增司机”添加</div>}
-          </div>
+          {!incentiveByCity ? <>
+            <div className="subsection-actions"><div><strong>统一激励司机列表</strong><span>适用于活动配置中的全部城市</span></div>{!readOnly && <button className="secondary" type="button" onClick={() => setIncentiveDrivers([...incentiveDrivers, { id: Date.now(), phoneSuffix: "", mileage: 0 }])}>＋ 新增司机</button>}</div>
+            <div className="driver-config-list">
+              <div className="driver-config-head"><span>序号</span><span>司机手机尾号</span><span>司机累计公里数</span><span>操作</span></div>
+              {incentiveDrivers.map((item, index) => <div className="driver-config-row" key={item.id}>
+                <strong>{String(index + 1).padStart(2, "0")}</strong>
+                <input value={item.phoneSuffix} maxLength={4} inputMode="numeric" placeholder="请输入4位数字" onChange={(e) => updateIncentiveDriver(item.id, "phoneSuffix", e.target.value.replace(/\D/g, "").slice(0, 4))} disabled={readOnly} required />
+                <div className="unit-input"><input type="number" min="0" step="0.1" value={item.mileage} onChange={(e) => updateIncentiveDriver(item.id, "mileage", Number(e.target.value))} disabled={readOnly} required /><span>公里</span></div>
+                {!readOnly ? <button type="button" onClick={() => setIncentiveDrivers(incentiveDrivers.filter((driver) => driver.id !== item.id))}>删除</button> : <span>—</span>}
+              </div>)}
+              {!incentiveDrivers.length && <div className="driver-config-empty">暂未配置激励司机，可点击“新增司机”添加</div>}
+            </div>
+          </> : <div className="city-incentive-area">
+            <div className="city-incentive-toolbar"><div><strong>城市激励司机配置</strong><span>同一城市只能出现在一个配置组中</span></div>{!readOnly && <button className="secondary" type="button" onClick={addCityIncentive} disabled={!cities.some((city) => !cityIncentives.some((item) => item.cities.includes(city)))}>＋ 新增城市配置</button>}</div>
+            {cityIncentives.map((config, configIndex) => {
+              const usedByOthers = new Set(cityIncentives.filter((item) => item.id !== config.id).flatMap((item) => item.cities));
+              return <div className="city-incentive-card" key={config.id}>
+                <div className="city-incentive-head"><div><strong>城市配置 {configIndex + 1}</strong><span>{config.cities.length ? config.cities.join("、") : "未选择城市"}</span></div>{!readOnly && <button type="button" onClick={() => setCityIncentives(cityIncentives.filter((item) => item.id !== config.id))}>删除配置</button>}</div>
+                <div className="city-incentive-body">
+                  <Field label="适用城市" required hint="可多选；已被其他配置组使用的城市不可选择">
+                    <div className={`checkbox-picker compact-picker ${readOnly ? "disabled" : ""}`}>
+                      {cities.map((name) => {
+                        const unavailable = usedByOthers.has(name);
+                        return <label className={config.cities.includes(name) ? "selected" : unavailable ? "unavailable" : ""} key={name}><input type="checkbox" checked={config.cities.includes(name)} onChange={() => toggleIncentiveCity(config.id, name)} disabled={readOnly || unavailable} /><span>{name}</span></label>;
+                      })}
+                    </div>
+                    {!config.cities.length && <small className="field-error">请选择至少一个适用城市</small>}
+                  </Field>
+                  <div className="subsection-actions compact-actions"><div><strong>激励司机列表</strong><span>仅应用于本组所选城市</span></div>{!readOnly && <button className="secondary" type="button" onClick={() => addCityDriver(config.id)}>＋ 新增司机</button>}</div>
+                  <div className="driver-config-list">
+                    <div className="driver-config-head"><span>序号</span><span>司机手机尾号</span><span>司机累计公里数</span><span>操作</span></div>
+                    {config.drivers.map((driver, driverIndex) => <div className="driver-config-row" key={driver.id}>
+                      <strong>{String(driverIndex + 1).padStart(2, "0")}</strong>
+                      <input value={driver.phoneSuffix} maxLength={4} inputMode="numeric" placeholder="请输入4位数字" onChange={(e) => updateCityDriver(config.id, driver.id, "phoneSuffix", e.target.value.replace(/\D/g, "").slice(0, 4))} disabled={readOnly} required />
+                      <div className="unit-input"><input type="number" min="0" step="0.1" value={driver.mileage} onChange={(e) => updateCityDriver(config.id, driver.id, "mileage", Number(e.target.value))} disabled={readOnly} required /><span>公里</span></div>
+                      {!readOnly ? <button type="button" onClick={() => removeCityDriver(config.id, driver.id)}>删除</button> : <span>—</span>}
+                    </div>)}
+                    {!config.drivers.length && <div className="driver-config-empty">暂未配置该城市的激励司机</div>}
+                  </div>
+                </div>
+              </div>;
+            })}
+            {!cityIncentives.length && <div className="driver-config-empty standalone-empty">暂未配置城市，请点击“新增城市配置”添加</div>}
+          </div>}
         </section>
 
         <section className="form-section rewards-section">
