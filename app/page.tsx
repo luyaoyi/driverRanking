@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, ReactNode, useMemo, useState } from "react";
+import { FormEvent, ReactNode, useMemo, useRef, useState } from "react";
 
 type Stage = "未开始" | "统计中" | "统计已结束" | "投放已结束";
 type ActivityStatus = "有效" | "无效";
@@ -9,6 +9,7 @@ type ActivityConfig = {
   id: number;
   name: string;
   displayTitle: string;
+  heroImageName: string;
   city: string;
   status: ActivityStatus;
   stage: Stage;
@@ -56,6 +57,7 @@ const initialConfigs: ActivityConfig[] = [
     id: 1,
     name: "盛夏真车主里程挑战赛",
     displayTitle: "盛夏真车主里程挑战赛",
+    heroImageName: "盛夏里程挑战赛头图.png",
     city: "杭州市",
     status: "有效",
     stage: "统计中",
@@ -68,6 +70,7 @@ const initialConfigs: ActivityConfig[] = [
     id: 2,
     name: "申城真车主公里榜",
     displayTitle: "申城真车主公里榜",
+    heroImageName: "申城公里榜头图.jpg",
     city: "上海市",
     status: "有效",
     stage: "统计已结束",
@@ -80,6 +83,7 @@ const initialConfigs: ActivityConfig[] = [
     id: 3,
     name: "蓉城金秋里程赛",
     displayTitle: "蓉城金秋里程赛",
+    heroImageName: "蓉城金秋里程赛头图.png",
     city: "成都市",
     status: "有效",
     stage: "未开始",
@@ -92,6 +96,7 @@ const initialConfigs: ActivityConfig[] = [
     id: 4,
     name: "鹏城真车主里程季",
     displayTitle: "鹏城真车主里程季",
+    heroImageName: "鹏城里程季头图.webp",
     city: "深圳市",
     status: "无效",
     stage: "未开始",
@@ -187,6 +192,8 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
   const fixedTimeFields = mode !== "new";
   const [name, setName] = useState(current?.name ?? "");
   const [displayTitle, setDisplayTitle] = useState(current?.displayTitle ?? current?.name ?? "");
+  const [heroImageName, setHeroImageName] = useState(current?.heroImageName ?? "");
+  const heroImageInputRef = useRef<HTMLInputElement>(null);
   const initialCities = parseCities(current?.city);
   const defaultCities = initialCities.length ? initialCities : ["杭州市", "上海市"];
   const [cities, setCities] = useState<string[]>(defaultCities);
@@ -267,6 +274,7 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
     event.preventDefault();
     if (!name.trim()) return;
     if (!displayTitle.trim()) return;
+    if (!heroImageName) return;
     if (!cities.length) return;
     if (useStart < statsStart || useEnd > statsEnd || useStart >= useEnd) return;
     if (incentiveStart >= incentiveEnd) return;
@@ -283,6 +291,7 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
       id: current?.id ?? Date.now(),
       name,
       displayTitle: displayTitle.trim(),
+      heroImageName,
       city: cities.join("、"),
       status,
       stage: current?.stage ?? "未开始",
@@ -447,6 +456,18 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
           <div className="frontend-style-fields">
             <Field label="活动标题（外显）" required hint="用于司机端活动页面展示，保存前自动去除首尾空格">
               <input value={displayTitle} onChange={(e) => setDisplayTitle(e.target.value)} placeholder="请输入司机端展示的活动标题" disabled={readOnly} required />
+            </Field>
+            <Field label="落地页头图" required hint="用于司机端落地页顶部展示，支持选择常见图片格式">
+              <input ref={heroImageInputRef} className="visually-hidden" type="file" accept="image/*" disabled={readOnly} onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) setHeroImageName(file.name);
+              }} />
+              <div className={`image-upload ${heroImageName ? "has-file" : ""}`}>
+                <div className="image-upload-icon" aria-hidden="true">▧</div>
+                <div className="image-upload-copy"><strong>{heroImageName || "暂未配置头图"}</strong><span>{heroImageName ? "已选择图片，可重新上传替换" : "请选择用于活动落地页顶部展示的图片"}</span></div>
+                {!readOnly && <div className="image-upload-actions"><button className="secondary" type="button" onClick={() => heroImageInputRef.current?.click()}>{heroImageName ? "替换图片" : "选择图片"}</button>{heroImageName && <button className="text-danger" type="button" onClick={() => { setHeroImageName(""); if (heroImageInputRef.current) heroImageInputRef.current.value = ""; }}>移除</button>}</div>}
+              </div>
+              {!heroImageName && <small className="field-error">请上传落地页头图</small>}
             </Field>
             <Field label="规则说明" hint="非必填，支持富文本编辑">
               <div className={`rich-editor ${readOnly ? "readonly" : ""}`}>

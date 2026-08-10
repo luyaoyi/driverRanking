@@ -212,6 +212,16 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--brand); }
 .compact-actions { margin-top: 10px; }
 .standalone-empty { border: 1px dashed #d9dfe8; border-radius: 8px; }
 .frontend-style-fields { display: flex; flex-direction: column; gap: 20px; }
+.visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+.image-upload { min-height: 88px; border: 1px dashed #cfd7e3; border-radius: 8px; padding: 14px 16px; background: #fafbfd; display: flex; align-items: center; gap: 13px; }
+.image-upload.has-file { border-style: solid; border-color: #b9ccef; background: #f8fbff; }
+.image-upload-icon { width: 42px; height: 42px; border-radius: 8px; background: #eaf1ff; color: var(--brand); display: grid; place-items: center; font-size: 21px; flex: none; }
+.image-upload-copy { min-width: 0; flex: 1; }
+.image-upload-copy strong, .image-upload-copy span { display: block; }
+.image-upload-copy strong { color: #334158; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.image-upload-copy span { color: #8a94a2; font-size: 10px; margin-top: 5px; }
+.image-upload-actions { display: flex; align-items: center; gap: 10px; }
+.text-danger { border: 0; background: transparent; color: #d25151; padding: 5px; }
 .rich-editor { border: 1px solid #dfe4eb; border-radius: 7px; overflow: hidden; background: #fff; }
 .rich-toolbar { display: flex; gap: 4px; padding: 8px 10px; background: #f7f9fc; border-bottom: 1px solid #e6eaf0; }
 .rich-toolbar button { min-width: 32px; height: 28px; border: 1px solid #dfe4eb; border-radius: 5px; background: #fff; color: #4a566a; padding: 0 8px; }
