@@ -211,6 +211,7 @@ input[type="radio"], input[type="checkbox"] { accent-color: var(--brand); }
 .compact-picker { margin-bottom: 5px; }
 .compact-actions { margin-top: 10px; }
 .standalone-empty { border: 1px dashed #d9dfe8; border-radius: 8px; }
+.frontend-style-fields { display: flex; flex-direction: column; gap: 20px; }
 .rich-editor { border: 1px solid #dfe4eb; border-radius: 7px; overflow: hidden; background: #fff; }
 .rich-toolbar { display: flex; gap: 4px; padding: 8px 10px; background: #f7f9fc; border-bottom: 1px solid #e6eaf0; }
 .rich-toolbar button { min-width: 32px; height: 28px; border: 1px solid #dfe4eb; border-radius: 5px; background: #fff; color: #4a566a; padding: 0 8px; }

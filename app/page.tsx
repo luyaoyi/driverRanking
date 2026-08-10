@@ -8,6 +8,7 @@ type ActivityStatus = "有效" | "无效";
 type ActivityConfig = {
   id: number;
   name: string;
+  displayTitle: string;
   city: string;
   status: ActivityStatus;
   stage: Stage;
@@ -54,6 +55,7 @@ const initialConfigs: ActivityConfig[] = [
   {
     id: 1,
     name: "盛夏真车主里程挑战赛",
+    displayTitle: "盛夏真车主里程挑战赛",
     city: "杭州市",
     status: "有效",
     stage: "统计中",
@@ -65,6 +67,7 @@ const initialConfigs: ActivityConfig[] = [
   {
     id: 2,
     name: "申城真车主公里榜",
+    displayTitle: "申城真车主公里榜",
     city: "上海市",
     status: "有效",
     stage: "统计已结束",
@@ -76,6 +79,7 @@ const initialConfigs: ActivityConfig[] = [
   {
     id: 3,
     name: "蓉城金秋里程赛",
+    displayTitle: "蓉城金秋里程赛",
     city: "成都市",
     status: "有效",
     stage: "未开始",
@@ -87,6 +91,7 @@ const initialConfigs: ActivityConfig[] = [
   {
     id: 4,
     name: "鹏城真车主里程季",
+    displayTitle: "鹏城真车主里程季",
     city: "深圳市",
     status: "无效",
     stage: "未开始",
@@ -181,6 +186,7 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
   const readOnly = mode === "view";
   const fixedTimeFields = mode !== "new";
   const [name, setName] = useState(current?.name ?? "");
+  const [displayTitle, setDisplayTitle] = useState(current?.displayTitle ?? current?.name ?? "");
   const initialCities = parseCities(current?.city);
   const defaultCities = initialCities.length ? initialCities : ["杭州市", "上海市"];
   const [cities, setCities] = useState<string[]>(defaultCities);
@@ -260,6 +266,7 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!name.trim()) return;
+    if (!displayTitle.trim()) return;
     if (!cities.length) return;
     if (useStart < statsStart || useEnd > statsEnd || useStart >= useEnd) return;
     if (incentiveStart >= incentiveEnd) return;
@@ -275,6 +282,7 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
     onSave({
       id: current?.id ?? Date.now(),
       name,
+      displayTitle: displayTitle.trim(),
       city: cities.join("、"),
       status,
       stage: current?.stage ?? "未开始",
@@ -436,17 +444,22 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
 
         <section className="form-section">
           <div className="section-head"><span>06</span><div><h3>前端样式</h3><p>配置司机端活动页面展示内容</p></div></div>
-          <Field label="规则说明" hint="非必填，支持富文本编辑">
-            <div className={`rich-editor ${readOnly ? "readonly" : ""}`}>
-              <div className="rich-toolbar">
-                <button type="button" disabled={readOnly} onMouseDown={(e) => { e.preventDefault(); document.execCommand("bold"); }}><b>B</b></button>
-                <button type="button" disabled={readOnly} onMouseDown={(e) => { e.preventDefault(); document.execCommand("italic"); }}><i>I</i></button>
-                <button type="button" disabled={readOnly} onMouseDown={(e) => { e.preventDefault(); document.execCommand("insertUnorderedList"); }}>• 列表</button>
-                <button type="button" disabled={readOnly} onMouseDown={(e) => { e.preventDefault(); document.execCommand("insertOrderedList"); }}>1. 列表</button>
+          <div className="frontend-style-fields">
+            <Field label="活动标题（外显）" required hint="用于司机端活动页面展示，保存前自动去除首尾空格">
+              <input value={displayTitle} onChange={(e) => setDisplayTitle(e.target.value)} placeholder="请输入司机端展示的活动标题" disabled={readOnly} required />
+            </Field>
+            <Field label="规则说明" hint="非必填，支持富文本编辑">
+              <div className={`rich-editor ${readOnly ? "readonly" : ""}`}>
+                <div className="rich-toolbar">
+                  <button type="button" disabled={readOnly} onMouseDown={(e) => { e.preventDefault(); document.execCommand("bold"); }}><b>B</b></button>
+                  <button type="button" disabled={readOnly} onMouseDown={(e) => { e.preventDefault(); document.execCommand("italic"); }}><i>I</i></button>
+                  <button type="button" disabled={readOnly} onMouseDown={(e) => { e.preventDefault(); document.execCommand("insertUnorderedList"); }}>• 列表</button>
+                  <button type="button" disabled={readOnly} onMouseDown={(e) => { e.preventDefault(); document.execCommand("insertOrderedList"); }}>1. 列表</button>
+                </div>
+                <div className="rich-content" contentEditable={!readOnly} suppressContentEditableWarning data-placeholder="请输入活动规则说明">活动期间完成符合条件的订单，即可累计真实完单里程并参与城市排行榜。</div>
               </div>
-              <div className="rich-content" contentEditable={!readOnly} suppressContentEditableWarning data-placeholder="请输入活动规则说明">活动期间完成符合条件的订单，即可累计真实完单里程并参与城市排行榜。</div>
-            </div>
-          </Field>
+            </Field>
+          </div>
         </section>
 
         <div className="sticky-actions"><button className="secondary" type="button" onClick={onClose}>{readOnly ? "返回" : "取消"}</button>{!readOnly && <button className="primary" type="submit">保存配置</button>}</div>
