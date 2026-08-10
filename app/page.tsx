@@ -47,8 +47,13 @@ type RewardDetail = {
   id: number;
   type: "普通奖品" | "现金奖品";
   content: string;
+  activityCode: string;
   claimStatus: "领取成功" | "领取失败" | "补发中";
-  couponNo: string;
+  prizes: Array<{
+    id: number;
+    name: string;
+    couponNo: string;
+  }>;
   paymentStatus?: "待打款" | "打款中" | "打款成功" | "打款失败";
 };
 
@@ -118,17 +123,23 @@ const drivers = [
 
 const driverRewards: Record<string, RewardDetail[]> = {
   "126833921": [
-    { id: 1, type: "普通奖品", content: "华为运动手表", claimStatus: "领取成功", couponNo: "CPN202608126833921" },
-    { id: 2, type: "现金奖品", content: "500元", claimStatus: "领取成功", couponNo: "—", paymentStatus: "打款成功" },
+    { id: 1, type: "普通奖品", content: "冠军实物礼包", activityCode: "ACT202609WATCH", claimStatus: "领取成功", prizes: [
+      { id: 101, name: "华为运动手表", couponNo: "CPN202608126833921" },
+      { id: 102, name: "100元加油券", couponNo: "CPN202608126833922" },
+    ] },
+    { id: 2, type: "现金奖品", content: "500元现金奖励", activityCode: "CASH_DYNAMIC_202609", claimStatus: "领取成功", prizes: [{ id: 201, name: "现金奖励", couponNo: "—" }], paymentStatus: "打款成功" },
   ],
   "884102376": [
-    { id: 3, type: "现金奖品", content: "300元", claimStatus: "领取成功", couponNo: "—", paymentStatus: "打款中" },
+    { id: 3, type: "现金奖品", content: "300元现金奖励", activityCode: "CASH_DYNAMIC_202609", claimStatus: "领取成功", prizes: [{ id: 301, name: "现金奖励", couponNo: "—" }], paymentStatus: "打款中" },
   ],
   "532771904": [
-    { id: 4, type: "普通奖品", content: "200元加油卡", claimStatus: "领取失败", couponNo: "—" },
+    { id: 4, type: "普通奖品", content: "季军出行礼包", activityCode: "ACT202609TRAVEL", claimStatus: "领取失败", prizes: [
+      { id: 401, name: "200元加油卡", couponNo: "—" },
+      { id: 402, name: "50元洗车券", couponNo: "—" },
+    ] },
   ],
   "291406835": [
-    { id: 5, type: "现金奖品", content: "100元", claimStatus: "领取成功", couponNo: "—", paymentStatus: "打款失败" },
+    { id: 5, type: "现金奖品", content: "100元现金奖励", activityCode: "CASH_DYNAMIC_202609", claimStatus: "领取成功", prizes: [{ id: 501, name: "现金奖励", couponNo: "—" }], paymentStatus: "打款失败" },
   ],
 };
 
@@ -532,7 +543,15 @@ function OrderDrawer({ mid, onClose }: { mid: string; onClose: () => void }) {
   const [rewardItems, setRewardItems] = useState<RewardDetail[]>(driverRewards[mid] ?? []);
   const reissue = (id: number) => setRewardItems((items) => items.map((item) => item.id === id ? { ...item, claimStatus: "补发中" } : item));
 
-  return <div className="drawer-mask" onMouseDown={onClose}><aside className="drawer" onMouseDown={(e) => e.stopPropagation()}><div className="drawer-head"><div><span className="eyebrow">司机里程与奖励明细</span><h2>司机 {mid}</h2></div><button onClick={onClose}>×</button></div><div className="driver-summary"><div><span>归属城市</span><strong>{driver.city}</strong></div><div><span>累计公里数</span><strong>{driver.mileage} km</strong></div><div><span>当前名次</span><strong>第 {driver.rank} 名</strong></div><div><span>奖励状态</span><StatusTag value={driver.rewardStatus} /></div></div>{driver.rewardStatus === "已发放" && <div className="drawer-table reward-detail-table"><div className="panel-title"><div><h3>奖品信息</h3><span>普通奖品与现金奖品分别展示</span></div></div><table><thead><tr><th>奖品类型</th><th>奖励内容</th><th>领取状态</th><th>券号</th><th>打款状态</th><th className="right">操作</th></tr></thead><tbody>{rewardItems.map((item) => <tr key={item.id}><td><span className={`reward-label ${item.type === "现金奖品" ? "cash" : "normal"}`}>{item.type}</span></td><td><strong>{item.content}</strong></td><td><StatusTag value={item.claimStatus} /></td><td>{item.couponNo}</td><td>{item.type === "现金奖品" ? <StatusTag value={item.paymentStatus ?? "待打款"} /> : "—"}</td><td className="right actions">{item.claimStatus === "领取失败" ? <button onClick={() => reissue(item.id)}>补发</button> : item.claimStatus === "补发中" ? <button disabled>补发中</button> : "—"}</td></tr>)}</tbody></table></div>}<div className="drawer-table order-detail-table"><div className="panel-title"><div><h3>计入订单</h3><span>共 {driver.orders} 单</span></div></div><table><thead><tr><th>订单号 / 完单时间</th><th>出发城市</th><th>订单公里数</th><th>计入时间</th></tr></thead><tbody>{orderDetails.map((item) => <tr key={item.no}><td><strong>{item.no}</strong><small>{item.time}</small></td><td>{item.city}</td><td><strong className="mileage">{item.km}</strong> km</td><td>{item.counted}</td></tr>)}</tbody></table></div><div className="drawer-foot"><span>明细里程合计与司机累计公里数保持一致</span><button className="primary" onClick={onClose}>关闭</button></div></aside></div>;
+  return <div className="drawer-mask" onMouseDown={onClose}><aside className="drawer" onMouseDown={(e) => e.stopPropagation()}><div className="drawer-head"><div><span className="eyebrow">司机里程与奖励明细</span><h2>司机 {mid}</h2></div><button onClick={onClose}>×</button></div><div className="driver-summary"><div><span>归属城市</span><strong>{driver.city}</strong></div><div><span>累计公里数</span><strong>{driver.mileage} km</strong></div><div><span>当前名次</span><strong>第 {driver.rank} 名</strong></div><div><span>奖励状态</span><StatusTag value={driver.rewardStatus} /></div></div>{driver.rewardStatus === "已发放" && <div className="drawer-table reward-detail-table"><div className="panel-title"><div><h3>奖品信息</h3><span>按奖励维度展示，普通奖励可包含多个奖品</span></div></div><table><thead><tr><th>奖品类型</th><th>奖励内容</th><th>活动Code</th><th>领取状态</th><th>奖品名称</th><th>券号</th><th>打款状态</th><th className="right">操作</th></tr></thead><tbody>{rewardItems.flatMap((item) => item.prizes.map((prize, prizeIndex) => <tr className={prizeIndex === 0 ? "reward-group-start" : ""} key={`${item.id}-${prize.id}`}>
+    {prizeIndex === 0 && <td className="reward-group-cell" rowSpan={item.prizes.length}><span className={`reward-label ${item.type === "现金奖品" ? "cash" : "normal"}`}>{item.type}</span></td>}
+    {prizeIndex === 0 && <td className="reward-group-cell" rowSpan={item.prizes.length}><strong>{item.content}</strong></td>}
+    {prizeIndex === 0 && <td className="reward-group-cell activity-code" rowSpan={item.prizes.length}>{item.activityCode}</td>}
+    {prizeIndex === 0 && <td className="reward-group-cell" rowSpan={item.prizes.length}><StatusTag value={item.claimStatus} /></td>}
+    <td><strong className="reward-prize-name">{prize.name}</strong></td><td>{prize.couponNo}</td>
+    {prizeIndex === 0 && <td className="reward-group-cell" rowSpan={item.prizes.length}>{item.type === "现金奖品" ? <StatusTag value={item.paymentStatus ?? "待打款"} /> : "—"}</td>}
+    {prizeIndex === 0 && <td className="right actions reward-group-cell" rowSpan={item.prizes.length}>{item.claimStatus === "领取失败" ? <button onClick={() => reissue(item.id)}>补发奖励</button> : item.claimStatus === "补发中" ? <button disabled>补发中</button> : "—"}</td>}
+  </tr>))}</tbody></table></div>}<div className="drawer-table order-detail-table"><div className="panel-title"><div><h3>计入订单</h3><span>共 {driver.orders} 单</span></div></div><table><thead><tr><th>订单号 / 完单时间</th><th>出发城市</th><th>订单公里数</th><th>计入时间</th></tr></thead><tbody>{orderDetails.map((item) => <tr key={item.no}><td><strong>{item.no}</strong><small>{item.time}</small></td><td>{item.city}</td><td><strong className="mileage">{item.km}</strong> km</td><td>{item.counted}</td></tr>)}</tbody></table></div><div className="drawer-foot"><span>明细里程合计与司机累计公里数保持一致</span><button className="primary" onClick={onClose}>关闭</button></div></aside></div>;
 }
 
 export default function Home() {
