@@ -7,6 +7,7 @@ type ActivityStatus = "有效" | "无效";
 
 type ActivityConfig = {
   id: number;
+  code: string;
   name: string;
   displayTitle: string;
   heroImageName: string;
@@ -26,6 +27,7 @@ type RewardRule = {
   normal: boolean;
   normalName: string;
   code: string;
+  normalValue: number;
   cash: boolean;
   cashCode: string;
   amount: number;
@@ -43,23 +45,10 @@ type CityIncentiveConfig = {
   drivers: IncentiveDriver[];
 };
 
-type RewardDetail = {
-  id: number;
-  type: "普通奖品" | "现金奖品";
-  content: string;
-  activityCode: string;
-  claimStatus: "领取成功" | "领取失败" | "补发中";
-  prizes: Array<{
-    id: number;
-    name: string;
-    couponNo: string;
-  }>;
-  paymentStatus?: "待打款" | "打款中" | "打款成功" | "打款失败";
-};
-
 const initialConfigs: ActivityConfig[] = [
   {
     id: 1,
+    code: "MILEAGE_RANK_HZ_202608",
     name: "盛夏真车主里程挑战赛",
     displayTitle: "盛夏真车主里程挑战赛",
     heroImageName: "盛夏里程挑战赛头图.png",
@@ -73,6 +62,7 @@ const initialConfigs: ActivityConfig[] = [
   },
   {
     id: 2,
+    code: "MILEAGE_RANK_SH_202607",
     name: "申城真车主公里榜",
     displayTitle: "申城真车主公里榜",
     heroImageName: "申城公里榜头图.jpg",
@@ -86,6 +76,7 @@ const initialConfigs: ActivityConfig[] = [
   },
   {
     id: 3,
+    code: "MILEAGE_RANK_CD_202609",
     name: "蓉城金秋里程赛",
     displayTitle: "蓉城金秋里程赛",
     heroImageName: "蓉城金秋里程赛头图.png",
@@ -99,6 +90,7 @@ const initialConfigs: ActivityConfig[] = [
   },
   {
     id: 4,
+    code: "MILEAGE_RANK_SZ_202610",
     name: "鹏城真车主里程季",
     displayTitle: "鹏城真车主里程季",
     heroImageName: "鹏城里程季头图.webp",
@@ -119,35 +111,6 @@ const drivers = [
   { rank: 4, mid: "291406835", phone: "**** 9480", city: "杭州市", mileage: "2,801.6", orders: 157, last: "2026-08-09 10:42:16", rewardStatus: "已发放" },
   { rank: 5, mid: "733905214", phone: "**** 1208", city: "杭州市", mileage: "2,677.9", orders: 151, last: "2026-08-09 10:11:09", rewardStatus: "未发放" },
   { rank: 6, mid: "408126753", phone: "**** 7734", city: "杭州市", mileage: "2,591.3", orders: 148, last: "2026-08-09 09:58:22", rewardStatus: "未发放" },
-];
-
-const driverRewards: Record<string, RewardDetail[]> = {
-  "126833921": [
-    { id: 1, type: "普通奖品", content: "冠军实物礼包", activityCode: "ACT202609WATCH", claimStatus: "领取成功", prizes: [
-      { id: 101, name: "华为运动手表", couponNo: "CPN202608126833921" },
-      { id: 102, name: "100元加油券", couponNo: "CPN202608126833922" },
-    ] },
-    { id: 2, type: "现金奖品", content: "500元现金奖励", activityCode: "CASH_DYNAMIC_202609", claimStatus: "领取成功", prizes: [{ id: 201, name: "现金奖励", couponNo: "—" }], paymentStatus: "打款成功" },
-  ],
-  "884102376": [
-    { id: 3, type: "现金奖品", content: "300元现金奖励", activityCode: "CASH_DYNAMIC_202609", claimStatus: "领取成功", prizes: [{ id: 301, name: "现金奖励", couponNo: "—" }], paymentStatus: "打款中" },
-  ],
-  "532771904": [
-    { id: 4, type: "普通奖品", content: "季军出行礼包", activityCode: "ACT202609TRAVEL", claimStatus: "领取失败", prizes: [
-      { id: 401, name: "200元加油卡", couponNo: "—" },
-      { id: 402, name: "50元洗车券", couponNo: "—" },
-    ] },
-  ],
-  "291406835": [
-    { id: 5, type: "现金奖品", content: "100元现金奖励", activityCode: "CASH_DYNAMIC_202609", claimStatus: "领取成功", prizes: [{ id: 501, name: "现金奖励", couponNo: "—" }], paymentStatus: "打款失败" },
-  ],
-};
-
-const orderDetails = [
-  { no: "DD2026080900186271", time: "2026-08-09 11:26:18", city: "杭州市", km: "18.6", counted: "2026-08-09 11:26:20" },
-  { no: "DD2026080900163518", time: "2026-08-09 10:42:07", city: "杭州市", km: "24.1", counted: "2026-08-09 10:42:09" },
-  { no: "DD2026080900139066", time: "2026-08-09 09:51:34", city: "杭州市", km: "16.8", counted: "2026-08-09 09:51:36" },
-  { no: "DD2026080800927185", time: "2026-08-08 22:18:45", city: "杭州市", km: "31.5", counted: "2026-08-08 22:18:48" },
 ];
 
 const cityOptions = [
@@ -231,8 +194,8 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
   })));
   const [groupsLoaded, setGroupsLoaded] = useState(false);
   const [rules, setRules] = useState<RewardRule[]>([
-    { id: 1, from: 1, to: 1, normal: true, normalName: "华为运动手表", code: "ACT202609WATCH", cash: true, cashCode: "CASH_DYNAMIC_202609", amount: 500 },
-    { id: 2, from: 2, to: 3, normal: false, normalName: "", code: "", cash: true, cashCode: "CASH_DYNAMIC_202609", amount: 300 },
+    { id: 1, from: 1, to: 1, normal: true, normalName: "华为运动手表", code: "ACT202609WATCH", normalValue: 899, cash: true, cashCode: "CASH_DYNAMIC_202609", amount: 500 },
+    { id: 2, from: 2, to: 3, normal: false, normalName: "", code: "", normalValue: 100, cash: true, cashCode: "CASH_DYNAMIC_202609", amount: 300 },
   ]);
 
   const updateRule = (id: number, key: keyof RewardRule, value: string | number | boolean) => {
@@ -297,9 +260,10 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
       const invalidCityConfig = !cityIncentives.length || cityIncentives.some((item) => !item.cities.length || item.cities.some((city) => !cities.includes(city)) || item.drivers.some(invalidDriver));
       if (hasOverlap || invalidCityConfig) return;
     }
-    if (!rules.length || rules.some((rule) => (!rule.normal && !rule.cash) || (rule.cash && !rule.cashCode.trim()))) return;
+    if (!rules.length || rules.some((rule) => (!rule.normal && !rule.cash) || (rule.normal && (rule.normalValue < 1 || rule.normalValue > 1000)) || (rule.cash && !rule.cashCode.trim()))) return;
     onSave({
       id: current?.id ?? Date.now(),
+      code: current?.code ?? `MILEAGE_RANK_${Date.now()}`,
       name,
       displayTitle: displayTitle.trim(),
       heroImageName,
@@ -449,13 +413,13 @@ function ConfigEditor({ mode, current, onClose, onSave }: {
         </section>
 
         <section className="form-section rewards-section">
-          <div className="section-head"><span>05</span><div><h3><b className="required-mark">*</b>名次奖励配置</h3><p>必填；名次区间不可重叠，进入配置名次即获奖</p></div>{!readOnly && <button className="secondary" type="button" onClick={() => setRules([...rules, { id: Date.now(), from: rules.length + 2, to: rules.length + 2, normal: false, normalName: "", code: "", cash: true, cashCode: "", amount: 100 }])}>＋ 新增名次奖励</button>}</div>
+          <div className="section-head"><span>05</span><div><h3><b className="required-mark">*</b>名次奖励配置</h3><p>必填；名次区间不可重叠，进入配置名次即获奖</p></div>{!readOnly && <button className="secondary" type="button" onClick={() => setRules([...rules, { id: Date.now(), from: rules.length + 2, to: rules.length + 2, normal: false, normalName: "", code: "", normalValue: 100, cash: true, cashCode: "", amount: 100 }])}>＋ 新增名次奖励</button>}</div>
           <div className="reward-list">
             {rules.map((rule, index) => <div className="reward-card" key={rule.id}>
               <div className="reward-card-head"><strong>奖励规则 {index + 1}</strong>{rules.length > 1 && !readOnly && <button type="button" onClick={() => setRules(rules.filter((item) => item.id !== rule.id))}>删除</button>}</div>
               <div className="rank-row"><Field label="获奖名次" required hint="名次区间左闭右闭，包含起始名次和结束名次"><div className="rank-range"><input type="number" min="1" value={rule.from} onChange={(e) => updateRule(rule.id, "from", Number(e.target.value))} disabled={readOnly} /><em>至</em><input type="number" min="1" value={rule.to} onChange={(e) => updateRule(rule.id, "to", Number(e.target.value))} disabled={readOnly} /><i>名</i></div></Field></div>
               <div className="reward-types">
-                <div className={`reward-type ${rule.normal ? "selected" : ""}`}><div className="reward-type-title"><label><input type="checkbox" checked={rule.normal} onChange={(e) => updateRule(rule.id, "normal", e.target.checked)} disabled={readOnly} />普通奖品</label><span>通过营销活动Code发放</span></div>{rule.normal && <div className="reward-fields"><Field label="奖品名称" required><input value={rule.normalName} onChange={(e) => updateRule(rule.id, "normalName", e.target.value)} disabled={readOnly} /></Field><Field label="奖品发放活动Code" required><input value={rule.code} onChange={(e) => updateRule(rule.id, "code", e.target.value)} disabled={readOnly} /></Field></div>}</div>
+                <div className={`reward-type ${rule.normal ? "selected" : ""}`}><div className="reward-type-title"><label><input type="checkbox" checked={rule.normal} onChange={(e) => updateRule(rule.id, "normal", e.target.checked)} disabled={readOnly} />普通奖品</label><span>通过营销活动Code发放</span></div>{rule.normal && <div className="reward-fields normal-reward-fields"><Field label="奖品名称" required><input value={rule.normalName} onChange={(e) => updateRule(rule.id, "normalName", e.target.value)} disabled={readOnly} /></Field><Field label="奖品发放活动Code" required><input value={rule.code} onChange={(e) => updateRule(rule.id, "code", e.target.value)} disabled={readOnly} /></Field><Field label="奖励价值" required hint="仅允许填写1～1000元"><div className="unit-input"><input type="number" min="1" max="1000" step="1" value={rule.normalValue} onChange={(e) => updateRule(rule.id, "normalValue", Number(e.target.value))} disabled={readOnly} required /><span>元</span></div></Field></div>}</div>
                 <div className={`reward-type ${rule.cash ? "selected" : ""}`}><div className="reward-type-title"><label><input type="checkbox" checked={rule.cash} onChange={(e) => updateRule(rule.id, "cash", e.target.checked)} disabled={readOnly} />现金奖品</label><span>按配置的固定金额打款</span></div>{rule.cash && <div className="reward-fields"><Field label="现金奖品Code" required hint="请使用动态金额上限奖品"><input value={rule.cashCode} onChange={(e) => updateRule(rule.id, "cashCode", e.target.value)} disabled={readOnly} required /></Field><Field label="现金奖励金额" required><div className="unit-input"><input type="number" min="1" step="1" value={rule.amount} onChange={(e) => updateRule(rule.id, "amount", Number(e.target.value))} disabled={readOnly} required /><span>元</span></div></Field></div>}</div>
               </div>
             </div>)}
@@ -524,41 +488,32 @@ function ConfigList({ configs, onOpen }: { configs: ActivityConfig[]; onOpen: (m
   </>;
 }
 
-function DataPage({ onDetail }: { onDetail: (mid: string) => void }) {
+function DataPage() {
   return <>
-    <div className="content-heading"><div><span className="eyebrow">活动运营</span><h1>活动数据</h1><p>查看司机累计里程、订单明细与奖励信息</p></div><div className="live-pill"><i /> 实时数据</div></div>
-    <section className="panel filter-panel data-filter">
+    <div className="content-heading"><div><span className="eyebrow">活动运营</span><h1>活动数据</h1><p>查看活动基础信息与运行状态</p></div><div className="live-pill"><i /> 实时数据</div></div>
+    <section className="panel filter-panel">
       <div className="filter-grid">
         <Field label="活动名称" required><select defaultValue="盛夏真车主里程挑战赛"><option>盛夏真车主里程挑战赛</option><option>申城真车主公里榜</option><option>蓉城金秋里程赛</option></select></Field>
-        <Field label="mid"><input placeholder="请输入mid" /></Field>
-        <Field label="手机号后四位"><input maxLength={4} placeholder="请输入4位数字" /></Field>
       </div><div className="filter-actions"><button className="secondary">重置</button><button className="primary">查询</button></div>
     </section>
-    <section className="panel table-panel"><div className="panel-title"><div><h3>司机里程排行榜</h3><span>当前展示：杭州市</span></div><span className="rank-note">里程越高排名越靠前</span></div><div className="table-wrap"><table><thead><tr><th>名次</th><th>mid / 手机号</th><th>归属城市</th><th>累计公里数</th><th>计入订单数</th><th>奖励状态</th><th>最近计入时间</th><th className="right">操作</th></tr></thead><tbody>{drivers.map((item) => <tr key={item.mid}><td><span className={`rank-badge r${item.rank}`}>{item.rank}</span></td><td><strong>{item.mid}</strong><span className="subline">{item.phone}</span></td><td>{item.city}</td><td><strong className="mileage">{item.mileage}</strong><span className="unit"> km</span></td><td>{item.orders} 单</td><td><StatusTag value={item.rewardStatus} /></td><td>{item.last}</td><td className="right actions"><button onClick={() => onDetail(item.mid)}>查看明细</button></td></tr>)}</tbody></table></div><div className="pagination"><span>共 2,486 条</span><select><option>20 条/页</option></select><button>‹</button><button className="active">1</button><button>2</button><button>3</button><button>›</button></div></section>
+    <section className="panel activity-overview"><div className="panel-title"><div><h3>活动信息</h3><span>不展示司机及订单明细</span></div></div><div className="overview-grid"><div><span>活动Code</span><strong>MILEAGE_RANK_HZ_202608</strong></div><div><span>活动名称</span><strong>盛夏真车主里程挑战赛</strong></div><div><span>活动城市</span><strong>杭州市、上海市</strong></div><div><span>活动状态</span><StatusTag value="有效" /></div><div><span>活动投放时间</span><strong>2026-08-01 00:00:00 — 2026-08-31 23:59:59</strong></div><div><span>订单统计时间</span><strong>2026-08-05 00:00:00 — 2026-08-25 23:59:59</strong></div></div></section>
   </>;
 }
 
-function OrderDrawer({ mid, onClose }: { mid: string; onClose: () => void }) {
-  const driver = drivers.find((item) => item.mid === mid) ?? drivers[0];
-  const [rewardItems, setRewardItems] = useState<RewardDetail[]>(driverRewards[mid] ?? []);
-  const reissue = (id: number) => setRewardItems((items) => items.map((item) => item.id === id ? { ...item, claimStatus: "补发中" } : item));
-
-  return <div className="drawer-mask" onMouseDown={onClose}><aside className="drawer" onMouseDown={(e) => e.stopPropagation()}><div className="drawer-head"><div><span className="eyebrow">司机里程与奖励明细</span><h2>司机 {mid}</h2></div><button onClick={onClose}>×</button></div><div className="driver-summary"><div><span>归属城市</span><strong>{driver.city}</strong></div><div><span>累计公里数</span><strong>{driver.mileage} km</strong></div><div><span>当前名次</span><strong>第 {driver.rank} 名</strong></div><div><span>奖励状态</span><StatusTag value={driver.rewardStatus} /></div></div>{driver.rewardStatus === "已发放" && <div className="drawer-table reward-detail-table"><div className="panel-title"><div><h3>奖品信息</h3><span>按奖励维度展示，普通奖励可包含多个奖品</span></div></div><table><thead><tr><th>奖品类型</th><th>奖励内容</th><th>活动Code</th><th>领取状态</th><th>奖品名称</th><th>券号</th><th>打款状态</th><th className="right">操作</th></tr></thead><tbody>{rewardItems.flatMap((item) => item.prizes.map((prize, prizeIndex) => <tr className={prizeIndex === 0 ? "reward-group-start" : ""} key={`${item.id}-${prize.id}`}>
-    {prizeIndex === 0 && <td className="reward-group-cell" rowSpan={item.prizes.length}><span className={`reward-label ${item.type === "现金奖品" ? "cash" : "normal"}`}>{item.type}</span></td>}
-    {prizeIndex === 0 && <td className="reward-group-cell" rowSpan={item.prizes.length}><strong>{item.content}</strong></td>}
-    {prizeIndex === 0 && <td className="reward-group-cell activity-code" rowSpan={item.prizes.length}>{item.activityCode}</td>}
-    {prizeIndex === 0 && <td className="reward-group-cell" rowSpan={item.prizes.length}><StatusTag value={item.claimStatus} /></td>}
-    <td><strong className="reward-prize-name">{prize.name}</strong></td><td>{prize.couponNo}</td>
-    {prizeIndex === 0 && <td className="reward-group-cell" rowSpan={item.prizes.length}>{item.type === "现金奖品" ? <StatusTag value={item.paymentStatus ?? "待打款"} /> : "—"}</td>}
-    {prizeIndex === 0 && <td className="right actions reward-group-cell" rowSpan={item.prizes.length}>{item.claimStatus === "领取失败" ? <button onClick={() => reissue(item.id)}>补发奖励</button> : item.claimStatus === "补发中" ? <button disabled>补发中</button> : "—"}</td>}
-  </tr>))}</tbody></table></div>}<div className="drawer-table order-detail-table"><div className="panel-title"><div><h3>计入订单</h3><span>共 {driver.orders} 单</span></div></div><table><thead><tr><th>订单号 / 完单时间</th><th>出发城市</th><th>订单公里数</th><th>计入时间</th></tr></thead><tbody>{orderDetails.map((item) => <tr key={item.no}><td><strong>{item.no}</strong><small>{item.time}</small></td><td>{item.city}</td><td><strong className="mileage">{item.km}</strong> km</td><td>{item.counted}</td></tr>)}</tbody></table></div><div className="drawer-foot"><span>明细里程合计与司机累计公里数保持一致</span><button className="primary" onClick={onClose}>关闭</button></div></aside></div>;
+function RankingPage() {
+  const [activityCode, setActivityCode] = useState("MILEAGE_RANK_HZ_202608");
+  const [city, setCity] = useState("杭州市");
+  return <>
+    <div className="content-heading"><div><span className="eyebrow">活动运营</span><h1>排行榜</h1><p>按活动Code及城市查看司机累计公里数榜单</p></div><div className="live-pill"><i /> TOP50</div></div>
+    <section className="panel filter-panel ranking-filter"><div className="filter-grid"><Field label="活动Code" required><select value={activityCode} onChange={(e) => setActivityCode(e.target.value)}>{initialConfigs.map((item) => <option key={item.code} value={item.code}>{item.code}</option>)}</select></Field><Field label="城市" required><select value={city} onChange={(e) => setCity(e.target.value)}>{cityOptions.map((item) => <option key={item.code}>{item.name}</option>)}</select></Field></div><div className="filter-actions"><button className="secondary" onClick={() => { setActivityCode("MILEAGE_RANK_HZ_202608"); setCity("杭州市"); }}>重置</button><button className="primary">查询</button></div></section>
+    <section className="panel table-panel"><div className="panel-title"><div><h3>司机里程排行榜</h3><span>{activityCode} · {city}</span></div><span className="rank-note">仅展示TOP50，里程越高排名越靠前</span></div><div className="table-wrap"><table><thead><tr><th>名次</th><th>mid / 手机号</th><th>归属城市</th><th>累计公里数</th><th>计入订单数</th></tr></thead><tbody>{drivers.map((item) => <tr key={item.mid}><td><span className={`rank-badge r${item.rank}`}>{item.rank}</span></td><td><strong>{item.mid}</strong><span className="subline">{item.phone}</span></td><td>{city}</td><td><strong className="mileage">{item.mileage}</strong><span className="unit"> km</span></td><td>{item.orders} 单</td></tr>)}</tbody></table></div><div className="pagination"><span>仅展示前50名</span><select defaultValue="20"><option>20 条/页</option><option>50 条/页</option></select><button disabled>‹</button><button className="active">1</button><button>2</button><button>3</button><button>›</button></div></section>
+  </>;
 }
 
 export default function Home() {
-  const [nav, setNav] = useState<"config" | "data">("config");
+  const [nav, setNav] = useState<"config" | "data" | "ranking">("config");
   const [configs, setConfigs] = useState(initialConfigs);
   const [editor, setEditor] = useState<{ mode: "new" | "edit" | "view"; item?: ActivityConfig } | null>(null);
-  const [detailMid, setDetailMid] = useState<string | null>(null);
   const [toast, setToast] = useState("");
 
   const saveConfig = (item: ActivityConfig) => {
@@ -571,14 +526,13 @@ export default function Home() {
   return <div className="app-shell">
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark"><span>里</span></div><div><strong>出行营销</strong><small>活动运营中心</small></div></div>
-      <nav><span className="nav-section">活动管理</span><button className={nav === "config" ? "active" : ""} onClick={() => { setNav("config"); setEditor(null); }}><Icon>▦</Icon><span>配置管理</span></button><button className={nav === "data" ? "active" : ""} onClick={() => { setNav("data"); setEditor(null); }}><Icon>⌁</Icon><span>活动数据</span></button></nav>
+      <nav><span className="nav-section">活动管理</span><button className={nav === "config" ? "active" : ""} onClick={() => { setNav("config"); setEditor(null); }}><Icon>▦</Icon><span>配置管理</span></button><button className={nav === "data" ? "active" : ""} onClick={() => { setNav("data"); setEditor(null); }}><Icon>⌁</Icon><span>活动数据</span></button><button className={nav === "ranking" ? "active" : ""} onClick={() => { setNav("ranking"); setEditor(null); }}><Icon>≣</Icon><span>排行榜</span></button></nav>
       <div className="sidebar-help"><span>?</span><div><strong>需要帮助？</strong><small>查看活动配置规范</small></div></div>
     </aside>
     <main>
-      <header className="topbar"><div className="breadcrumb"><span>真车主运营</span><b>/</b><strong>{nav === "config" ? "配置管理" : "活动数据"}</strong></div><div className="top-actions"><button title="通知">●</button><div className="user"><span>林</span><div><strong>林晓</strong><small>活动运营</small></div><b>⌄</b></div></div></header>
-      <div className="content">{editor ? <ConfigEditor mode={editor.mode} current={editor.item} onClose={() => setEditor(null)} onSave={saveConfig} /> : nav === "config" ? <ConfigList configs={configs} onOpen={(mode, item) => setEditor({ mode, item })} /> : <DataPage onDetail={setDetailMid} />}</div>
+      <header className="topbar"><div className="breadcrumb"><span>真车主运营</span><b>/</b><strong>{nav === "config" ? "配置管理" : nav === "data" ? "活动数据" : "排行榜"}</strong></div><div className="top-actions"><button title="通知">●</button><div className="user"><span>林</span><div><strong>林晓</strong><small>活动运营</small></div><b>⌄</b></div></div></header>
+      <div className="content">{editor ? <ConfigEditor mode={editor.mode} current={editor.item} onClose={() => setEditor(null)} onSave={saveConfig} /> : nav === "config" ? <ConfigList configs={configs} onOpen={(mode, item) => setEditor({ mode, item })} /> : nav === "data" ? <DataPage /> : <RankingPage />}</div>
     </main>
-    {detailMid && <OrderDrawer mid={detailMid} onClose={() => setDetailMid(null)} />}
     {toast && <div className="toast"><span>✓</span>{toast}</div>}
   </div>;
 }
